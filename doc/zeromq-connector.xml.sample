@@ -1,0 +1,3 @@
+<!-- BEGIN_INCLUDE(zeromq:outbound-endpoint) -->
+    <zeromq:outbound-endpoint address="#[map-payload:content]" exchangePattern="#[map-payload:content]"/>
+<!-- END_INCLUDE(zeromq:outbound-endpoint) -->
