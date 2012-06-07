@@ -22,18 +22,56 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:spring="http://www.springframework.org/schema/beans"
       xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:test="http://www.mulesoft.org/schema/mule/test"
       xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
         http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/current/mule-test.xsd
         http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/1.0-SNAPSHOT/mule-zeromq.xsd">
 
     <zeromq:config myProperty="Some string"
             username="xxx" password="yyy"/>
 
-    <flow name="testFlow">
-        <expression-transformer expression="'NYC, 10001'" evaluator="groovy"/>
-        <zeromq:outbound-endpoint address="tcp://192.168.1.73:5556" exchangePattern="PUBLISH"/>
-        <logger level="ERROR" message="#[payload:]"></logger>
+    <!--<flow name="testFlow">-->
+        <!--<expression-transformer expression="'NYC, 10001'" evaluator="groovy"/>-->
+        <!--<zeromq:outbound-endpoint address="tcp://192.168.1.73:5556" exchangePattern="PUBLISH"/>-->
+        <!--<logger level="ERROR" message="#[payload:]"></logger>-->
+    <!--</flow>-->
+
+    <flow name="RequestResponseBindFlow">
+        <zeromq:inbound-endpoint address="tcp://*:${request.response.bind.flow.port}" socketOperation="BIND" exchangePattern="REQUEST_RESPONSE"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
+    </flow>
+
+    <flow name="RequestResponseConnectFlow">
+        <zeromq:inbound-endpoint address="tcp://localhost:${request.response.connect.flow.port}" socketOperation="CONNECT" exchangePattern="REQUEST_RESPONSE"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
+    </flow>
+
+    <flow name="SubscribeNoFilterFlow">
+        <zeromq:inbound-endpoint address="tcp://localhost:${subscribe.nofilter.flow.port}" socketOperation="CONNECT" exchangePattern="SUBSCRIBE"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
+    </flow>
+
+    <flow name="SubscribeFilterFlow">
+        <zeromq:inbound-endpoint filter="Foo" address="tcp://localhost:${subscribe.filter.flow.port}" socketOperation="CONNECT" exchangePattern="SUBSCRIBE"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
+    </flow>
+
+    <flow name="PullBindFlow">
+        <zeromq:inbound-endpoint address="tcp://*:${pull.bind.flow.port}" socketOperation="BIND" exchangePattern="PULL"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
+    </flow>
+
+    <flow name="PullConnectFlow">
+        <zeromq:inbound-endpoint address="tcp://localhost:${pull.connect.flow.port}" socketOperation="CONNECT" exchangePattern="PULL"/>
+        <byte-array-to-string-transformer/>
+        <test:component appendString=" jumps over the lazy dog"/>
     </flow>
 
 </mule>

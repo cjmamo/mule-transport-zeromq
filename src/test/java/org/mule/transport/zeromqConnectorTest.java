@@ -20,66 +20,251 @@
  */
 package org.mule.transport;
 
-import org.mule.api.MuleEvent;
-import org.mule.construct.Flow;
-import org.mule.tck.FunctionalTestCase;
-import org.mule.tck.AbstractMuleTestCase;
-
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mule.api.MuleEventContext;
+import org.mule.tck.functional.EventCallback;
+import org.mule.tck.functional.FunctionalTestComponent;
+import org.mule.tck.junit4.FunctionalTestCase;
+import org.mule.tck.junit4.rule.DynamicPort;
+import org.mule.util.concurrent.Latch;
+import org.zeromq.ZMQ;
 
-public class zeromqConnectorTest extends FunctionalTestCase
-{
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
+
+public class zeromqConnectorTest extends FunctionalTestCase implements EventCallback {
+
+    private final CountDownLatch messageLatch = new Latch();
+    private static final int CONNECT_WAIT = 4000;
+
+    @Rule
+    public DynamicPort requestResponseBindFlowPort = new DynamicPort("request.response.bind.flow.port");
+
+    @Rule
+    public DynamicPort requestResponseConnectFlowPort = new DynamicPort("request.response.connect.flow.port");
+
+    @Rule
+    public DynamicPort subscribeNoFilterFlowPort = new DynamicPort("subscribe.nofilter.flow.port");
+
+    @Rule
+    public DynamicPort subscribeFilterFlowPort = new DynamicPort("subscribe.filter.flow.port");
+
+    @Rule
+    public DynamicPort pullBindFlowPort = new DynamicPort("pull.bind.flow.port");
+
+    @Rule
+    public DynamicPort pullConnectFlowPort = new DynamicPort("pull.connect.flow.port");
+
+    private static ZMQ.Context zmqContext;
+
     @Override
-    protected String getConfigResources()
-    {
+    protected String getConfigResources() {
         return "mule-config.xml";
     }
 
+    public zeromqConnectorTest() {
+        this.setDisposeContextPerClass(true);
+    }
+
+//    @Test
+//    public void testFlow() throws Exception
+//    {
+//        runFlowAndExpect("testFlow", "Another string");
+//    }
+
+    private String deserialize(byte[] data) throws Exception {
+        InputStream in = new ByteArrayInputStream(data);
+        ObjectInputStream ois = new ObjectInputStream(in);
+        return ois.readObject().toString();
+    }
+
+    @BeforeClass
+    public static void oneTimeSetUp() {
+        zmqContext = ZMQ.context(1);
+    }
+
+    @AfterClass
+    public static void oneTimeTearDown() {
+        zmqContext.term();
+    }
+
     @Test
-    public void testFlow() throws Exception
-    {
-        runFlowAndExpect("testFlow", "Another string");
+    public void testRequestResponseBind() throws Exception {
+        getFunctionalTestComponent("RequestResponseBindFlow").setEventCallback(this);
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
+        zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
+        zmqSocket.connect("tcp://localhost:" + requestResponseBindFlowPort.getNumber());
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        byte[] response = zmqSocket.recv(0);
+
+        zmqSocket.close();
+
+        assertNotNull(response);
+        assertEquals("The quick brown fox jumps over the lazy dog", deserialize(response));
     }
+
+    @Test
+    public void testRequestResponseConnect() throws Exception {
+        getFunctionalTestComponent("RequestResponseConnectFlow").setEventCallback(this);
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
+        zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
+        zmqSocket.bind("tcp://*:" + requestResponseConnectFlowPort.getNumber());
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        byte[] response = zmqSocket.recv(0);
+
+        zmqSocket.close();
+
+        assertNotNull(response);
+        assertEquals("The quick brown fox jumps over the lazy dog", deserialize(response));
+    }
+
+    @Test
+    public void testSubscribeNoFilter() throws Exception {
+        getFunctionalTestComponent("SubscribeNoFilterFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.bind("tcp://*:" + subscribeNoFilterFlowPort.getNumber());
+        Thread.sleep(CONNECT_WAIT);
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testSubscribeFilterReject() throws Exception {
+        getFunctionalTestComponent("SubscribeFilterFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.bind("tcp://*:" + subscribeFilterFlowPort.getNumber());
+        Thread.sleep(CONNECT_WAIT);
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+        assertFalse(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testSubscribeFilterAccept() throws Exception {
+        getFunctionalTestComponent("SubscribeFilterFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                assertEquals("Foo", ((FunctionalTestComponent) component).getLastReceivedMessage());
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.bind("tcp://*:" + subscribeFilterFlowPort.getNumber());
+        Thread.sleep(CONNECT_WAIT);
+        zmqSocket.send("Foo".getBytes(), 0);
+        zmqSocket.close();
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
+
+    @Test
+    public void testPullBind() throws Exception {
+        getFunctionalTestComponent("PullBindFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.connect("tcp://localhost:" + pullBindFlowPort.getNumber());
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testPullConnect() throws Exception {
+        getFunctionalTestComponent("PullConnectFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.bind("tcp://*:" + pullConnectFlowPort.getNumber());
+        Thread.sleep(CONNECT_WAIT);
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
 
     /**
-    * Run the flow specified by name and assert equality on the expected output
-    *
-    * @param flowName The name of the flow to run
-    * @param expect The expected output
-    */
-    protected <T> void runFlowAndExpect(String flowName, T expect) throws Exception
-    {
-        Flow flow = lookupFlowConstruct(flowName);
-        MuleEvent event = AbstractMuleTestCase.getTestEvent(null);
-        MuleEvent responseEvent = flow.process(event);
-
-        assertEquals(expect, responseEvent.getMessage().getPayload());
-    }
+     * Run the flow specified by name and assert equality on the expected output
+     *
+     * @param flowName The name of the flow to run
+     * @param expect The expected output
+     */
+//    protected <T> void runFlowAndExpect(String flowName, T expect) throws Exception
+//    {
+//        Flow flow = lookupFlowConstruct(flowName);
+//        MuleEvent event = AbstractMuleTestCase.getTestEvent(null);
+//        MuleEvent responseEvent = flow.process(event);
+//
+//        assertEquals(expect, responseEvent.getMessage().getPayload());
+//    }
 
     /**
-    * Run the flow specified by name using the specified payload and assert
-    * equality on the expected output
-    *
-    * @param flowName The name of the flow to run
-    * @param expect The expected output
-    * @param payload The payload of the input event
-    */
-    protected <T, U> void runFlowWithPayloadAndExpect(String flowName, T expect, U payload) throws Exception
-    {
-        Flow flow = lookupFlowConstruct(flowName);
-        MuleEvent event = AbstractMuleTestCase.getTestEvent(payload);
-        MuleEvent responseEvent = flow.process(event);
-
-        assertEquals(expect, responseEvent.getMessage().getPayload());
-    }
+     * Run the flow specified by name using the specified payload and assert
+     * equality on the expected output
+     *
+     * @param flowName The name of the flow to run
+     * @param expect The expected output
+     * @param payload The payload of the input event
+     */
+//    protected <T, U> void runFlowWithPayloadAndExpect(String flowName, T expect, U payload) throws Exception
+//    {
+//        Flow flow = lookupFlowConstruct(flowName);
+//        MuleEvent event = AbstractMuleTestCase.getTestEvent(payload);
+//        MuleEvent responseEvent = flow.process(event);
+//
+//        assertEquals(expect, responseEvent.getMessage().getPayload());
+//    }
 
     /**
      * Retrieve a flow by name from the registry
      *
      * @param name Name of the flow to retrieve
      */
-    protected Flow lookupFlowConstruct(String name)
-    {
-        return (Flow) AbstractMuleTestCase.muleContext.getRegistry().lookupFlowConstruct(name);
+//    protected Flow lookupFlowConstruct(String name)
+//    {
+//        return (Flow) AbstractMuleTestCase.muleContext.getRegistry().lookupFlowConstruct(name);
+//    }
+    @Override
+    public void eventReceived(MuleEventContext context, Object component) throws Exception {
+        assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
     }
 }

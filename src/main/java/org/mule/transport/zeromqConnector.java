@@ -20,19 +20,73 @@
  */
 package org.mule.transport;
 
-import org.mule.api.ConnectionException;
+import org.mule.DefaultMuleEvent;
+import org.mule.DefaultMuleMessage;
+import org.mule.MessageExchangePattern;
+import org.mule.api.*;
 import org.mule.api.annotations.*;
+import org.mule.api.annotations.lifecycle.Start;
 import org.mule.api.annotations.param.ConnectionKey;
+import org.mule.api.annotations.param.Optional;
 import org.mule.api.annotations.param.Payload;
 import org.mule.api.callback.SourceCallback;
+import org.mule.api.construct.FlowConstruct;
+import org.mule.api.processor.MessageProcessor;
+import org.mule.session.DefaultMuleSession;
+import org.mule.transport.config.InboundEndpointMessageSource;
 import org.zeromq.ZMQ;
 
+import javax.annotation.PreDestroy;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
+
+/**
+ * Cloud Connector
+ *
+ * @author MuleSoft, Inc.
+ */
 @Connector(name = "zeromq", schemaVersion = "1.0-SNAPSHOT")
 public class zeromqConnector {
 
-    public enum ExchangePattern {
+//    public MuleContext getMuleContext() {
+//        return muleContext;
+//    }
 
-        REQUEST_RESPONSE, ONE_WAY, PUBLISH
+//    @Inject
+//    private MuleContext muleContext;
+//
+//    private FlowConstruct flowConstruct;
+//
+//    private MessageProcessor messageProcessor;
+//
+//    private Holder holder;
+//
+//    public FlowConstruct getFlowConstruct() {
+//        return flowConstruct;
+//    }
+//
+//    @Override
+//    public void setFlowConstruct(FlowConstruct flowConstruct) {
+//        this.flowConstruct = flowConstruct;
+//    }
+
+//    @Override
+//    public void setListener(MessageProcessor listener) {
+//        messageProcessor = listener;
+//    }
+
+//    @Override
+//    public void setListener(MessageProcessor listener) {
+//        messageProcessor = listener;
+//    }
+
+    public enum ExchangePattern {
+        REQUEST_RESPONSE, ONE_WAY, PUBLISH, SUBSCRIBE, PUSH, PULL
+    }
+
+    public enum SocketOperation {
+        BIND, CONNECT
     }
 
     private ZMQ.Context zmqContext;
@@ -63,10 +117,17 @@ public class zeromqConnector {
     public void connect(@ConnectionKey String username, String password)
             throws ConnectionException {
 
-        if (zmqContext == null) {
-            zmqContext = ZMQ.context(1);
-        }
 
+    }
+
+    @Start
+    public void initialise() {
+        zmqContext = ZMQ.context(1);
+    }
+
+    @PreDestroy
+    public void destroy() {
+        zmqContext.term();
     }
 
     /**
@@ -103,46 +164,202 @@ public class zeromqConnector {
      * @param address         Content to be processed
      * @param exchangePattern Content to be processed
      * @param payload         Content to be processed
+     * @param socketOperation Content to be processed
+     * @param filter          Content to be processed
      * @return Some string
      */
     @Processor
-    public byte[] outboundEndpoint(String address, ExchangePattern exchangePattern, @Payload byte[] payload) throws Exception {
-        ZMQ.Socket socket;
-        byte[] reply;
+    public byte[] outboundEndpoint(String address, SocketOperation socketOperation, ExchangePattern exchangePattern, @Payload byte[] payload, @Optional String filter) throws Exception {
+        ZMQ.Socket zmqSocket = null;
+        byte[] message;
 
-        if (exchangePattern.equals(ExchangePattern.PUBLISH)) {
-            socket = zmqContext.socket(ZMQ.PUB);
-
-            String[] subscribers = address.split(";");
-
-            for (String subscriber : subscribers) {
-                socket.bind(subscriber);
-            }
-
-            socket.send(payload, 0);
-
-            reply = payload;
-        } else if (exchangePattern.equals(ExchangePattern.REQUEST_RESPONSE)) {
-            socket = zmqContext.socket(ZMQ.REQ);
-            socket.connect(address);
-
-            reply = socket.recv(0);
-        } else {
-            socket = zmqContext.socket(ZMQ.REQ);
-            socket.connect(address);
-
-            socket.send(payload, 0);
-
-            reply = payload;
+        switch (exchangePattern) {
+            case REQUEST_RESPONSE:
+                zmqSocket = requestResponseSender(socketOperation, address);
+                zmqSocket.send(payload, 0);
+                message = zmqSocket.recv(0);
+                break;
+            case PUBLISH:
+                zmqSocket = publish(socketOperation, address);
+                zmqSocket.send(payload, 0);
+                message = payload;
+                break;
+            case ONE_WAY:
+                zmqSocket = requestResponseSender(socketOperation, address);
+                zmqSocket.send(payload, 0);
+                message = payload;
+            case SUBSCRIBE:
+                zmqSocket = subscribe(socketOperation, address, filter);
+                message = zmqSocket.recv(0);
+            default:
+                throw new UnsupportedOperationException();
         }
 
-        socket.close();
+        zmqSocket.close();
 
-        return reply;
+        return message;
     }
 
-    public void inboundEndpoint(String address, final SourceCallback callback) throws Exception {
-        callback.process();
+    /**
+     * Custom processor
+     * <p/>
+     * {@sample.xml ../../../doc/zeromq-connector.xml.sample zeromq:outbound-endpoint}
+     *
+     * @param address         Content to be processed
+     * @param exchangePattern Content to be processed
+     * @param socketOperation Content to be processed
+     * @param callback        Content to be processed
+     * @param filter          Content to be processed
+     */
+    @Source
+    public void inboundEndpoint(String address, SocketOperation socketOperation, ExchangePattern exchangePattern, SourceCallback callback, @Optional String filter) throws Exception {
+        ZMQ.Socket zmqSocket = null;
+        byte[] message = null;
 
+        switch (exchangePattern) {
+
+            case REQUEST_RESPONSE:
+                zmqSocket = requestResponseReceiver(socketOperation, address);
+                message = zmqSocket.recv(0);
+                Object response = process(message, MessageExchangePattern.REQUEST_RESPONSE, callback);
+                zmqSocket.send(serialize(response), 0);
+                break;
+
+            case ONE_WAY:
+                zmqSocket = requestResponseReceiver(socketOperation, address);
+                message = zmqSocket.recv(0);
+                process(message, MessageExchangePattern.ONE_WAY, callback);
+                break;
+
+            case SUBSCRIBE:
+                zmqSocket = subscribe(socketOperation, address, filter);
+                message = zmqSocket.recv(0);
+                process(message, MessageExchangePattern.ONE_WAY, callback);
+                break;
+
+            case PUBLISH:
+                throw new UnsupportedOperationException();
+
+            case PUSH:
+                throw new UnsupportedOperationException();
+
+            case PULL:
+                zmqSocket = pull(socketOperation, address);
+                message = zmqSocket.recv(0);
+                process(message, MessageExchangePattern.ONE_WAY, callback);
+                break;
+        }
     }
+
+    /*The default implementation of SourceCallback always invokes the next message processor async.
+    This isn't the ideal way of solving the problem but for now its good enough.
+     */
+
+    public Object process(Object message, MessageExchangePattern messageExchangePattern, SourceCallback callback) throws Exception {
+        Field muleContextField = InboundEndpointMessageSource.class.getDeclaredField("muleContext");
+        Field flowConstructField = InboundEndpointMessageSource.class.getDeclaredField("flowConstruct");
+        Field messageProcessorField = InboundEndpointMessageSource.class.getDeclaredField("messageProcessor");
+
+        muleContextField.setAccessible(true);
+        flowConstructField.setAccessible(true);
+        messageProcessorField.setAccessible(true);
+        MuleContext muleContext = (MuleContext) muleContextField.get(callback);
+        FlowConstruct flowConstruct = (FlowConstruct) flowConstructField.get(callback);
+        MessageProcessor messageProcessor = (MessageProcessor) messageProcessorField.get(callback);
+
+
+        MuleMessage muleMessage;
+        muleMessage = new DefaultMuleMessage(message, null, null, null, muleContext);
+        MuleSession muleSession;
+        muleSession = new DefaultMuleSession(flowConstruct, muleContext);
+        MuleEvent muleEvent;
+        muleEvent = new DefaultMuleEvent(muleMessage, messageExchangePattern, muleSession);
+
+        MuleEvent responseEvent;
+        responseEvent = messageProcessor.process(muleEvent);
+        if ((responseEvent != null) && (responseEvent.getMessage() != null)) {
+            return responseEvent.getMessage().getPayload();
+        }
+
+        return null;
+    }
+
+    private byte[] serialize(Object obj) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream os = new ObjectOutputStream(out);
+        os.writeObject(obj);
+        os.close();
+
+        return out.toByteArray();
+    }
+
+    private ZMQ.Socket subscribe(SocketOperation socketOperation, String address, String filter) {
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.SUB);
+
+        if (filter != null) {
+            zmqSocket.subscribe(filter.getBytes());
+        } else {
+            zmqSocket.subscribe(new byte[]{});
+        }
+
+        prepare(zmqSocket, socketOperation, address);
+
+        return zmqSocket;
+    }
+
+    private ZMQ.Socket pull(SocketOperation socketOperation, String address) {
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PULL);
+        prepare(zmqSocket, socketOperation, address);
+
+        return zmqSocket;
+    }
+
+
+    private ZMQ.Socket requestResponseReceiver(SocketOperation socketOperation, String address) {
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
+        prepare(zmqSocket, socketOperation, address);
+
+        return zmqSocket;
+    }
+
+    private ZMQ.Socket requestResponseSender(SocketOperation socketOperation, String address) {
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
+        prepare(zmqSocket, socketOperation, address);
+
+        return zmqSocket;
+    }
+
+    private ZMQ.Socket publish(SocketOperation socketOperation, String address) {
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        String[] subscribers = address.split(";");
+
+        for (String subscriber : subscribers) {
+            prepare(zmqSocket, socketOperation, subscriber);
+        }
+
+        return zmqSocket;
+    }
+
+    private void prepare(ZMQ.Socket zmqSocket, SocketOperation socketOperation, String address) {
+        if (socketOperation.equals(SocketOperation.BIND)) {
+            zmqSocket.bind(address);
+        } else {
+            zmqSocket.connect(address);
+        }
+    }
+//
+//    public class Holder {
+//        public MuleContext getMuleContext() {
+//            return muleContext;
+//        }
+//
+//        public void setMuleContext(MuleContext muleContext) {
+//            this.muleContext = muleContext;
+//        }
+//
+//        private MuleContext muleContext;
+//
+//
+//    }
+
 }
