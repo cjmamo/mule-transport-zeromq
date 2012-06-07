@@ -47,39 +47,7 @@ import java.lang.reflect.Field;
  * @author MuleSoft, Inc.
  */
 @Connector(name = "zeromq", schemaVersion = "1.0-SNAPSHOT")
-public class zeromqConnector {
-
-//    public MuleContext getMuleContext() {
-//        return muleContext;
-//    }
-
-//    @Inject
-//    private MuleContext muleContext;
-//
-//    private FlowConstruct flowConstruct;
-//
-//    private MessageProcessor messageProcessor;
-//
-//    private Holder holder;
-//
-//    public FlowConstruct getFlowConstruct() {
-//        return flowConstruct;
-//    }
-//
-//    @Override
-//    public void setFlowConstruct(FlowConstruct flowConstruct) {
-//        this.flowConstruct = flowConstruct;
-//    }
-
-//    @Override
-//    public void setListener(MessageProcessor listener) {
-//        messageProcessor = listener;
-//    }
-
-//    @Override
-//    public void setListener(MessageProcessor listener) {
-//        messageProcessor = listener;
-//    }
+public class ZeroMQTransport {
 
     public enum ExchangePattern {
         REQUEST_RESPONSE, ONE_WAY, PUBLISH, SUBSCRIBE, PUSH, PULL
@@ -347,19 +315,5 @@ public class zeromqConnector {
             zmqSocket.connect(address);
         }
     }
-//
-//    public class Holder {
-//        public MuleContext getMuleContext() {
-//            return muleContext;
-//        }
-//
-//        public void setMuleContext(MuleContext muleContext) {
-//            this.muleContext = muleContext;
-//        }
-//
-//        private MuleContext muleContext;
-//
-//
-//    }
 
 }
