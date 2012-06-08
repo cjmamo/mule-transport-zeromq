@@ -1,0 +1,1 @@
+http\://www.mulesoft.org/schema/mule/zeromq=org.mule.transport.config.ZeroMQTransportNamespaceHandler
