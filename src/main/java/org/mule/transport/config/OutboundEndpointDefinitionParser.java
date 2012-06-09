@@ -47,11 +47,11 @@ public class OutboundEndpointDefinitionParser
         if ((element.getAttribute("retryMax")!= null)&&(!StringUtils.isBlank(element.getAttribute("retryMax")))) {
             builder.addPropertyValue("retryMax", element.getAttribute("retryMax"));
         }
-        if (element.hasAttribute("exchangePattern")) {
-            builder.addPropertyValue("exchangePattern", element.getAttribute("exchangePattern"));
+        if (element.hasAttribute("exchange-pattern")) {
+            builder.addPropertyValue("exchangePattern", element.getAttribute("exchange-pattern"));
         }
-        if (element.hasAttribute("socketOperation")) {
-            builder.addPropertyValue("socketOperation", element.getAttribute("socketOperation"));
+        if (element.hasAttribute("socket-operation")) {
+            builder.addPropertyValue("socketOperation", element.getAttribute("socket-operation"));
         }
         if ((element.getAttribute("address")!= null)&&(!StringUtils.isBlank(element.getAttribute("address")))) {
             builder.addPropertyValue("address", element.getAttribute("address"));

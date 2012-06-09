@@ -39,7 +39,8 @@ public class SocketOperationEnumTransformer
         throws TransformerException
     {
         org.mule.transport.ZeroMQTransport.SocketOperation result = null;
-        result = Enum.valueOf(org.mule.transport.ZeroMQTransport.SocketOperation.class, ((String) src));
+        String transformedSrc = ((String) src).toUpperCase().replace("-", "_");
+        result = Enum.valueOf(org.mule.transport.ZeroMQTransport.SocketOperation.class, transformedSrc);
         return result;
     }
 

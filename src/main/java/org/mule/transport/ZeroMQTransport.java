@@ -33,6 +33,7 @@ import org.mule.api.callback.SourceCallback;
 import org.mule.api.construct.FlowConstruct;
 import org.mule.api.processor.MessageProcessor;
 import org.mule.session.DefaultMuleSession;
+import org.mule.transformer.simple.ObjectToByteArray;
 import org.mule.transport.sources.InboundEndpointMessageSource;
 import org.zeromq.ZMQ;
 
@@ -64,6 +65,7 @@ public class ZeroMQTransport {
     private String address;
     private String filter;
     private ExchangePattern exchangePattern;
+    private ObjectToByteArray objectToByteArray;
 
     /**
      * Connect
@@ -101,11 +103,7 @@ public class ZeroMQTransport {
     @Start
     public void initialise() {
         zmqContext = ZMQ.context(1);
-    }
-
-    @PostConstruct
-    public void post() {
-        zmqContext.term();
+        objectToByteArray = new ObjectToByteArray();
     }
 
     @PreDestroy
@@ -197,7 +195,7 @@ public class ZeroMQTransport {
                 zmqSocket = requestResponseReceiver(socketOperation, address);
                 message = zmqSocket.recv(0);
                 Object response = callback.process(message);
-                zmqSocket.send(serialize(response), 0);
+                zmqSocket.send((byte[]) objectToByteArray.transform(response), 0);
                 break;
 
             case ONE_WAY:
@@ -224,15 +222,6 @@ public class ZeroMQTransport {
                 callback.process(message);
                 break;
         }
-    }
-
-    private byte[] serialize(Object obj) throws Exception {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream(out);
-        os.writeObject(obj);
-        os.close();
-
-        return out.toByteArray();
     }
 
     private ZMQ.Socket subscribe(SocketOperation socketOperation, String address, String filter) {

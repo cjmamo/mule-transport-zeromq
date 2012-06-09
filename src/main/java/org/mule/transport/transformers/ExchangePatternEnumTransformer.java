@@ -39,7 +39,8 @@ public class ExchangePatternEnumTransformer
         throws TransformerException
     {
         org.mule.transport.ZeroMQTransport.ExchangePattern result = null;
-        result = Enum.valueOf(org.mule.transport.ZeroMQTransport.ExchangePattern.class, ((String) src));
+        String transformedSrc = ((String) src).toUpperCase().replace("-", "_");
+        result = Enum.valueOf(org.mule.transport.ZeroMQTransport.ExchangePattern.class, transformedSrc);
         return result;
     }
 

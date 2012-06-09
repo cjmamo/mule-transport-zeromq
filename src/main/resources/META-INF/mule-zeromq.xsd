@@ -157,12 +157,12 @@
               <xs:documentation>Give a name to this configuration so it can be later referenced by config-ref.</xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchangePattern" use="optional" type="ExchangePatternEnumType">
+          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional" type="ExchangePatternEnumType">
             <xs:annotation>
               <xs:documentation>A password</xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socketOperation" use="optional" type="SocketOperationEnumType">
+          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional" type="SocketOperationEnumType">
             <xs:annotation>
               <xs:documentation>A username</xs:documentation>
             </xs:annotation>
@@ -200,12 +200,12 @@
             <xs:documentation>Specify how many times this operation can be retried automatically.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchangePattern" use="optional" type="ExchangePatternEnumType">
+        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional" type="ExchangePatternEnumType">
           <xs:annotation>
             <xs:documentation>A password</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socketOperation" use="optional" type="SocketOperationEnumType">
+        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional" type="SocketOperationEnumType">
           <xs:annotation>
             <xs:documentation>A username</xs:documentation>
           </xs:annotation>
@@ -237,12 +237,12 @@
             <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchangePattern" use="required" type="ExchangePatternEnumType">
+        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="required" type="ExchangePatternEnumType">
           <xs:annotation>
             <xs:documentation>Content to be processed</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socketOperation" use="required" type="SocketOperationEnumType">
+        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="required" type="SocketOperationEnumType">
           <xs:annotation>
             <xs:documentation>Content to be processed</xs:documentation>
           </xs:annotation>
@@ -264,8 +264,8 @@
     <xs:union>
       <xs:simpleType>
         <xs:restriction base="xs:string">
-          <xs:enumeration value="BIND"></xs:enumeration>
-          <xs:enumeration value="CONNECT"></xs:enumeration>
+          <xs:enumeration value="bind"></xs:enumeration>
+          <xs:enumeration value="connect"></xs:enumeration>
         </xs:restriction>
       </xs:simpleType>
       <xs:simpleType>
@@ -279,12 +279,12 @@
     <xs:union>
       <xs:simpleType>
         <xs:restriction base="xs:string">
-          <xs:enumeration value="REQUEST_RESPONSE"></xs:enumeration>
-          <xs:enumeration value="ONE_WAY"></xs:enumeration>
-          <xs:enumeration value="PUBLISH"></xs:enumeration>
-          <xs:enumeration value="SUBSCRIBE"></xs:enumeration>
-          <xs:enumeration value="PUSH"></xs:enumeration>
-          <xs:enumeration value="PULL"></xs:enumeration>
+          <xs:enumeration value="request-response"></xs:enumeration>
+          <xs:enumeration value="one-way"></xs:enumeration>
+          <xs:enumeration value="publish"></xs:enumeration>
+          <xs:enumeration value="subscribe"></xs:enumeration>
+          <xs:enumeration value="push"></xs:enumeration>
+          <xs:enumeration value="pull"></xs:enumeration>
         </xs:restriction>
       </xs:simpleType>
       <xs:simpleType>
