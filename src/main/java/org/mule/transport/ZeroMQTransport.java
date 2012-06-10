@@ -77,7 +77,7 @@ public class ZeroMQTransport {
      * @throws ConnectionException
      */
     @Connect
-    public void connect(ExchangePattern exchangePattern, @ConnectionKey SocketOperation socketOperation, @ConnectionKey String address, String filter, boolean isInbound)
+    public void connect(@ConnectionKey ExchangePattern exchangePattern, @ConnectionKey SocketOperation socketOperation, @ConnectionKey String address,  @ConnectionKey String filter, boolean isInbound)
             throws ConnectionException {
 
         if (!isInbound) {
@@ -95,6 +95,9 @@ public class ZeroMQTransport {
                     break;
                 case ONE_WAY:
                     zmqSocket = requestResponseSender(socketOperation, address);
+                    break;
+                case SUBSCRIBE:
+                    zmqSocket = subscribe(socketOperation, address, filter);
                     break;
             }
         }
@@ -164,7 +167,6 @@ public class ZeroMQTransport {
                 message = payload;
                 break;
             case SUBSCRIBE:
-                zmqSocket = subscribe(socketOperation, address, filter);
                 message = zmqSocket.recv(0);
                 break;
             default:
@@ -227,13 +229,13 @@ public class ZeroMQTransport {
     private ZMQ.Socket subscribe(SocketOperation socketOperation, String address, String filter) {
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.SUB);
 
+        prepare(zmqSocket, socketOperation, address);
+
         if (filter != null) {
             zmqSocket.subscribe(filter.getBytes());
         } else {
             zmqSocket.subscribe(new byte[]{});
         }
-
-        prepare(zmqSocket, socketOperation, address);
 
         return zmqSocket;
     }

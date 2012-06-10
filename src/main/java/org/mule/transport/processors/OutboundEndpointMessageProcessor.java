@@ -327,7 +327,7 @@ public class OutboundEndpointMessageProcessor
         return source;
     }
 
-    private Object evaluateAndTransform(MuleMessage muleMessage, Type expectedType, String expectedMimeType, Object source)
+    private Object evaluateAndTransform(MuleMessage muleMessage, Type expectedType, String expectedMimeType, Object source, boolean doEvaluate)
             throws TransformerException {
         if (source == null) {
             return source;
@@ -340,7 +340,7 @@ public class OutboundEndpointMessageProcessor
                 ListIterator iterator = ((List) source).listIterator();
                 while (iterator.hasNext()) {
                     Object subTarget = iterator.next();
-                    newList.add(evaluateAndTransform(muleMessage, valueType, expectedMimeType, subTarget));
+                    newList.add(evaluateAndTransform(muleMessage, valueType, expectedMimeType, subTarget, doEvaluate));
                 }
                 target = newList;
             } else {
@@ -360,8 +360,8 @@ public class OutboundEndpointMessageProcessor
                     for (Object entryObj : map.entrySet()) {
                         {
                             Map.Entry entry = ((Map.Entry) entryObj);
-                            Object newKey = evaluateAndTransform(muleMessage, keyType, expectedMimeType, entry.getKey());
-                            Object newValue = evaluateAndTransform(muleMessage, valueType, expectedMimeType, entry.getValue());
+                            Object newKey = evaluateAndTransform(muleMessage, keyType, expectedMimeType, entry.getKey(), doEvaluate);
+                            Object newValue = evaluateAndTransform(muleMessage, valueType, expectedMimeType, entry.getValue(), doEvaluate);
                             newMap.put(newKey, newValue);
                         }
                     }
@@ -370,7 +370,18 @@ public class OutboundEndpointMessageProcessor
                     target = source;
                 }
             } else {
-                target = evaluate(muleMessage, source);
+                if (doEvaluate) {
+                    target = evaluate(muleMessage, source);
+                } else {
+                    if (source instanceof String) {
+                        String stringSource = ((String) source);
+                        if (stringSource.startsWith(patternInfo.getPrefix()) && stringSource.endsWith(patternInfo.getSuffix())) {
+                            target = null;
+                        } else {
+                            target = source;
+                        }
+                    }
+                }
             }
         }
         if ((target != null) && (!isAssignableFrom(expectedType, target.getClass()))) {
@@ -413,38 +424,38 @@ public class OutboundEndpointMessageProcessor
         ZeroMQTransportLifecycleAdapter connection = null;
         try {
             if (exchangePattern != null) {
-                _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, exchangePattern));
+                _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, exchangePattern, true));
             } else {
                 if (_castedModuleObject.getExchangePattern() == null) {
                     throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("You must provide a exchangePattern at the config or the message processor level."));
                 }
-                _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, _castedModuleObject.getExchangePattern()));
+                _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, _castedModuleObject.getExchangePattern(), true));
             }
             if (socketOperation != null) {
-                _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, socketOperation));
+                _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, socketOperation, true));
             } else {
                 if (_castedModuleObject.getSocketOperation() == null) {
                     throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("You must provide a socketOperation at the config or the message processor level."));
                 }
-                _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, _castedModuleObject.getSocketOperation()));
+                _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, _castedModuleObject.getSocketOperation(), true));
             }
             if (address != null) {
-                _transformedAddress = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, address));
+                _transformedAddress = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, address, true));
             } else {
                 if (_castedModuleObject.getAddress() == null) {
                     throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("You must provide a address at the config or the message processor level."));
                 }
-                _transformedAddress = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, _castedModuleObject.getAddress()));
+                _transformedAddress = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, _castedModuleObject.getAddress(), true));
             }
             if (filter != null) {
-                _transformedFilter = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, filter));
+                _transformedFilter = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, filter, true));
             } else {
                 if (_castedModuleObject.getFilter() != null) {
-                    _transformedFilter = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, _castedModuleObject.getFilter()));
+                    _transformedFilter = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, _castedModuleObject.getFilter(), true));
                 }
 
             }
-            byte[] _transformedPayload = ((byte[]) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_payloadType").getGenericType(), null, "#[payload]"));
+            byte[] _transformedPayload = ((byte[]) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_payloadType").getGenericType(), null, "#[payload]", true));
             if (logger.isDebugEnabled()) {
                 StringBuilder _messageStringBuilder = new StringBuilder();
                 _messageStringBuilder.append("Attempting to acquire a connection using ");
@@ -529,38 +540,35 @@ public class OutboundEndpointMessageProcessor
             ZeroMQTransportLifecycleAdapter connection = null;
             try {
                 if (exchangePattern != null) {
-                    _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, exchangePattern));
+                    _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, exchangePattern, false));
                 } else {
-                    if (_castedModuleObject.getExchangePattern() == null) {
-                        throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("You must provide a exchangePattern at the config or the message processor level."));
-                    }
-                    _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, _castedModuleObject.getExchangePattern()));
-                }
-                if (socketOperation != null) {
-                    _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, socketOperation));
-                } else {
-                    if (_castedModuleObject.getSocketOperation() == null) {
-                        throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("You must provide a socketOperation at the config or the message processor level."));
-                    }
-                    _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, _castedModuleObject.getSocketOperation()));
-                }
-                if (address != null) {
-                    _transformedAddress = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, address));
-                } else {
-                    if (_castedModuleObject.getAddress() == null) {
-                        throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("You must provide a address at the config or the message processor level."));
-                    }
-                    _transformedAddress = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, _castedModuleObject.getAddress()));
-                }
-                if (filter != null) {
-                    _transformedFilter = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, filter));
-                } else {
-                    if (_castedModuleObject.getFilter() != null) {
-                        _transformedFilter = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, _castedModuleObject.getFilter()));
+                    if (_castedModuleObject.getExchangePattern() != null) {
+                        _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_exchangePatternType").getGenericType(), null, _castedModuleObject.getExchangePattern(), false));
                     }
 
                 }
-                byte[] _transformedPayload = ((byte[]) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_payloadType").getGenericType(), null, "#[payload]"));
+                if (socketOperation != null) {
+                    _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, socketOperation, false));
+                } else {
+                    if (_castedModuleObject.getSocketOperation() != null) {
+                        _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_socketOperationType").getGenericType(), null, _castedModuleObject.getSocketOperation(), false));
+                    }
+                }
+                if (address != null) {
+                    _transformedAddress = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, address, false));
+                } else {
+                    if (_castedModuleObject.getAddress() != null) {
+                        _transformedAddress = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_addressType").getGenericType(), null, _castedModuleObject.getAddress(), false));
+                    }
+
+                }
+                if (filter != null) {
+                    _transformedFilter = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, filter, false));
+                } else {
+                    if (_castedModuleObject.getFilter() != null) {
+                        _transformedFilter = ((String) evaluateAndTransform(null, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, _castedModuleObject.getFilter(), false));
+                    }
+                }
                 if (logger.isDebugEnabled()) {
                     StringBuilder _messageStringBuilder = new StringBuilder();
                     _messageStringBuilder.append("Attempting to acquire a connection using ");
@@ -578,17 +586,19 @@ public class OutboundEndpointMessageProcessor
                     _messageStringBuilder.append("] ");
                     logger.debug(_messageStringBuilder.toString());
                 }
-                connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false));
-                if (connection == null) {
-                    throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("Cannot create connection"));
-                } else {
-                    if (logger.isDebugEnabled()) {
-                        StringBuilder _messageStringBuilder = new StringBuilder();
-                        _messageStringBuilder.append("Connection has been acquired with ");
-                        _messageStringBuilder.append("[id = ");
-                        _messageStringBuilder.append(connection.connectionId());
-                        _messageStringBuilder.append("] ");
-                        logger.debug(_messageStringBuilder.toString());
+                if (_transformedExchangePattern != null && _transformedSocketOperation != null && _transformedAddress != null) {
+                    connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false));
+                    if (connection == null) {
+                        throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("Cannot create connection"));
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            StringBuilder _messageStringBuilder = new StringBuilder();
+                            _messageStringBuilder.append("Connection has been acquired with ");
+                            _messageStringBuilder.append("[id = ");
+                            _messageStringBuilder.append(connection.connectionId());
+                            _messageStringBuilder.append("] ");
+                            logger.debug(_messageStringBuilder.toString());
+                        }
                     }
                 }
             } catch (Exception e) {

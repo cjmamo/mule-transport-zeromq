@@ -17,6 +17,10 @@
         <zeromq:outbound-endpoint address="tcp://*:${request.response.outbound.bind.flow.port}" socket-operation="bind" exchange-pattern="request-response"/>
     </flow>
 
+    <flow name="DynamicEndpointFlow">
+        <zeromq:outbound-endpoint address="#[header:inbound:address]" socket-operation="#[header:inbound:socket-operation]" exchange-pattern="#[header:inbound:exchange-pattern]"/>
+    </flow>
+
     <flow name="RequestResponseOutboundConnectFlow">
         <zeromq:outbound-endpoint address="tcp://localhost:${request.response.outbound.connect.flow.port}" socket-operation="connect" exchange-pattern="request-response"/>
     </flow>

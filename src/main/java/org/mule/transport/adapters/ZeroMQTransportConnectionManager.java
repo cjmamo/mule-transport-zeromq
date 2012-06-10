@@ -1,4 +1,3 @@
-
 package org.mule.transport.adapters;
 
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
@@ -21,11 +20,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A {@code ZeroMQTransportConnectionManager} is a wrapper around {@link org.mule.transport.ZeroMQTransport } that adds connection management capabilities to the pojo.
- *
  */
 public class ZeroMQTransportConnectionManager
-    implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZeroMQTransportLifecycleAdapter> , MuleContextAware, Initialisable
-{
+        implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZeroMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
 
     /**
      *
@@ -46,17 +43,14 @@ public class ZeroMQTransportConnectionManager
     private static Logger logger = LoggerFactory.getLogger(ZeroMQTransportConnectionManager.class);
     /**
      * Mule Context
-     *
      */
     private MuleContext muleContext;
     /**
      * Flow construct
-     *
      */
     private FlowConstruct flowConstruct;
     /**
      * Connector Pool
-     *
      */
     private GenericKeyedObjectPool connectionPool;
     protected PoolingProfile connectionPoolingProfile;
@@ -72,7 +66,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * Retrieves connectionPoolingProfile
-     *
      */
     public PoolingProfile getConnectionPoolingProfile() {
         return this.connectionPoolingProfile;
@@ -89,7 +82,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * Retrieves socketOperation
-     *
      */
     public ZeroMQTransport.SocketOperation getSocketOperation() {
         return this.socketOperation;
@@ -106,7 +98,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * Retrieves address
-     *
      */
     public String getAddress() {
         return this.address;
@@ -123,7 +114,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * Retrieves exchangePattern
-     *
      */
     public ZeroMQTransport.ExchangePattern getExchangePattern() {
         return this.exchangePattern;
@@ -140,7 +130,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * Retrieves filter
-     *
      */
     public String getFilter() {
         return this.filter;
@@ -166,7 +155,7 @@ public class ZeroMQTransportConnectionManager
 
     public void initialise() {
         GenericKeyedObjectPool.Config config = new GenericKeyedObjectPool.Config();
-        if (connectionPoolingProfile!= null) {
+        if (connectionPoolingProfile != null) {
             config.maxIdle = connectionPoolingProfile.getMaxIdle();
             config.maxActive = connectionPoolingProfile.getMaxActive();
             config.maxWait = connectionPoolingProfile.getMaxWait();
@@ -176,26 +165,22 @@ public class ZeroMQTransportConnectionManager
     }
 
     public ZeroMQTransportLifecycleAdapter acquireConnection(ConnectionKey key)
-        throws Exception
-    {
+            throws Exception {
         return ((ZeroMQTransportLifecycleAdapter) connectionPool.borrowObject(key));
     }
 
     public void releaseConnection(ConnectionKey key, ZeroMQTransportLifecycleAdapter connection)
-        throws Exception
-    {
+            throws Exception {
         connectionPool.returnObject(key, connection);
     }
 
     public void destroyConnection(ConnectionKey key, ZeroMQTransportLifecycleAdapter connection)
-        throws Exception
-    {
+            throws Exception {
         connectionPool.invalidateObject(key, connection);
     }
 
     /**
      * Returns true if this module implements such capability
-     *
      */
     public boolean isCapableOf(Capability capability) {
         if (capability == Capability.LIFECYCLE_CAPABLE) {
@@ -208,8 +193,7 @@ public class ZeroMQTransportConnectionManager
     }
 
     private static class ConnectionFactory
-        implements KeyedPoolableObjectFactory
-    {
+            implements KeyedPoolableObjectFactory {
 
         private ZeroMQTransportConnectionManager connectionManager;
 
@@ -218,8 +202,7 @@ public class ZeroMQTransportConnectionManager
         }
 
         public Object makeObject(Object key)
-            throws Exception
-        {
+                throws Exception {
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
@@ -234,8 +217,7 @@ public class ZeroMQTransportConnectionManager
         }
 
         public void destroyObject(Object key, Object obj)
-            throws Exception
-        {
+                throws Exception {
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
@@ -269,8 +251,7 @@ public class ZeroMQTransportConnectionManager
         }
 
         public void activateObject(Object key, Object obj)
-            throws Exception
-        {
+                throws Exception {
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
@@ -287,8 +268,7 @@ public class ZeroMQTransportConnectionManager
         }
 
         public void passivateObject(Object key, Object obj)
-            throws Exception
-        {
+                throws Exception {
         }
 
     }
@@ -296,7 +276,6 @@ public class ZeroMQTransportConnectionManager
 
     /**
      * A tuple of connection parameters
-     *
      */
     public static class ConnectionKey {
 
@@ -340,7 +319,6 @@ public class ZeroMQTransportConnectionManager
 
         /**
          * Retrieves socketOperation
-         *
          */
         public ZeroMQTransport.SocketOperation getSocketOperation() {
             return this.socketOperation;
@@ -365,7 +343,6 @@ public class ZeroMQTransportConnectionManager
 
         /**
          * Retrieves address
-         *
          */
         public String getAddress() {
             return this.address;
@@ -382,7 +359,6 @@ public class ZeroMQTransportConnectionManager
 
         /**
          * Retrieves exchangePattern
-         *
          */
         public ZeroMQTransport.ExchangePattern getExchangePattern() {
             return this.exchangePattern;
@@ -399,7 +375,6 @@ public class ZeroMQTransportConnectionManager
 
         /**
          * Retrieves filter
-         *
          */
         public String getFilter() {
             return this.filter;
@@ -407,13 +382,22 @@ public class ZeroMQTransportConnectionManager
 
         public int hashCode() {
             int hash = 1;
-            hash = ((hash* 31)+ this.socketOperation.hashCode());
-            hash = ((hash* 31)+ this.address.hashCode());
+            hash = ((hash * 31) + this.socketOperation.hashCode());
+            hash = ((hash * 31) + this.address.hashCode());
+            hash = ((hash * 31) + this.exchangePattern.hashCode());
+            if (this.filter != null) {
+                hash = ((hash * 31) + this.filter.hashCode());
+            }
+
             return hash;
         }
 
         public boolean equals(Object obj) {
-            return (((obj instanceof ConnectionKey)&&(this.socketOperation == ((ConnectionKey) obj).socketOperation))&&(this.address == ((ConnectionKey) obj).address));
+            if (this.filter != null) {
+                return (((obj instanceof ConnectionKey) && (this.socketOperation == ((ConnectionKey) obj).socketOperation)) && (this.address == ((ConnectionKey) obj).address) && (this.exchangePattern == ((ConnectionKey) obj).exchangePattern) && (this.filter == ((ConnectionKey) obj).filter));
+            } else {
+                return (((obj instanceof ConnectionKey) && (this.socketOperation == ((ConnectionKey) obj).socketOperation)) && (this.address == ((ConnectionKey) obj).address) && (this.exchangePattern == ((ConnectionKey) obj).exchangePattern));
+            }
         }
 
     }
