@@ -67,7 +67,16 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     public DynamicPort publishFlowSubscriber2Port = new DynamicPort("publish.flow.subscriber2.port");
 
     @Rule
-    public DynamicPort dynamicEndpointFlowPort = new DynamicPort("dynamic.endpoint.flow.port");
+    public DynamicPort pullOutboundBindFlowPort = new DynamicPort("pull.outbound.bind.flow.port");
+
+    @Rule
+    public DynamicPort pushBindFlowPort = new DynamicPort("push.bind.flow.port");
+
+    @Rule
+    public DynamicPort pullOutboundConnectFlowPort = new DynamicPort("pull.outbound.connect.flow.port");
+
+    @Rule
+    public DynamicPort pushConnectFlowPort = new DynamicPort("push.connect.flow.port");
 
     private static ZMQ.Context zmqContext;
 
@@ -104,6 +113,98 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         }).start();
 
         runFlowWithPayloadAndExpect("RequestResponseOutboundBindFlow", "The quick brown fox jumps over the lazy dog", "The quick brown fox");
+    }
+
+    @Test
+     public void testPullOutboundBind() throws Exception {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
+                zmqSocket.connect("tcp://localhost:" + pullOutboundBindFlowPort.getNumber());
+                zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
+                zmqSocket.close();
+
+            }
+        }).start();
+
+        runFlowWithPayloadAndExpect("PullOutboundBindFlow", "The quick brown fox jumps over the lazy dog", null);
+    }
+
+    @Test
+    public void testPushConnect() throws Exception {
+        final CountDownLatch messageLatch = new Latch();
+
+        class Puller implements Runnable {
+
+            byte[] message;
+
+            public byte[] getMessage() {
+                return message;
+            }
+
+            @Override
+            public void run() {
+                ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PULL);
+                zmqSocket.bind("tcp://*:" + pushConnectFlowPort.getNumber());
+                message = zmqSocket.recv(0);
+                zmqSocket.close();
+                messageLatch.countDown();
+            }
+        }
+
+        Puller puller = new Puller();
+        new Thread(puller).start();
+
+        runFlowWithPayload("PushConnectFlow", "The quick brown fox jumps over the lazy dog");
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+        assertEquals("The quick brown fox jumps over the lazy dog", new String(puller.getMessage()));
+    }
+
+    @Test
+    public void testPullOutboundConnect() throws Exception {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
+                zmqSocket.bind("tcp://*:" + pullOutboundConnectFlowPort.getNumber());
+                zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
+                zmqSocket.close();
+
+            }
+        }).start();
+
+        runFlowWithPayloadAndExpect("PullOutboundConnectFlow", "The quick brown fox jumps over the lazy dog", null);
+    }
+
+    @Test
+    public void testPushBind() throws Exception {
+        final CountDownLatch messageLatch = new Latch();
+
+        class Puller implements Runnable {
+
+            byte[] message;
+
+            public byte[] getMessage() {
+                return message;
+            }
+
+            @Override
+            public void run() {
+                ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PULL);
+                zmqSocket.connect("tcp://localhost:" + pushBindFlowPort.getNumber());
+                message = zmqSocket.recv(0);
+                zmqSocket.close();
+                messageLatch.countDown();
+            }
+        }
+
+        Puller puller = new Puller();
+        new Thread(puller).start();
+
+        runFlowWithPayload("PushBindFlow", "The quick brown fox jumps over the lazy dog");
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+        assertEquals("The quick brown fox jumps over the lazy dog", new String(puller.getMessage()));
     }
 
     @Test
@@ -257,11 +358,12 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
                 zmqSocket.bind("tcp://*:" + subscribeOutboundNoFilterFlowPort.getNumber());
                 try {
                     Thread.sleep(CONNECT_WAIT);
+                    zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
                 } catch (Exception e) {
                     throw new RuntimeException();
+                } finally {
+                    zmqSocket.close();
                 }
-                zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
-                zmqSocket.close();
             }
         }).start();
 
@@ -292,8 +394,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
                     zmqSocket.send("Bar".getBytes(), 0);
                 } catch (Exception e) {
                     throw new RuntimeException();
-                }
-                finally {
+                } finally {
                     zmqSocket.close();
                 }
             }
@@ -326,8 +427,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
                     zmqSocket.send("Foo".getBytes(), 0);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
-                }
-                finally {
+                } finally {
                     zmqSocket.close();
                 }
             }
@@ -415,14 +515,6 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
     }
 
-    /**
-     * Run the flow specified by name using the specified payload and assert
-     * equality on the expected output
-     *
-     * @param flowName The name of the flow to run
-     * @param expect   The expected output
-     * @param payload  The payload of the input event
-     */
     protected <T, U> void runFlowWithPayloadAndExpect(String flowName, T expect, U payload) throws Exception {
         Flow flow = lookupFlowConstruct(flowName);
         MuleEvent event = getTestEvent(payload);
@@ -446,11 +538,6 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         flow.process(event);
     }
 
-    /**
-     * Retrieve a flow by name from the registry
-     *
-     * @param name Name of the flow to retrieve
-     */
     protected Flow lookupFlowConstruct(String name) {
         return (Flow) muleContext.getRegistry().lookupFlowConstruct(name);
     }

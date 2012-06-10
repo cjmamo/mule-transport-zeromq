@@ -17,6 +17,22 @@
         <zeromq:outbound-endpoint address="tcp://*:${request.response.outbound.bind.flow.port}" socket-operation="bind" exchange-pattern="request-response"/>
     </flow>
 
+    <flow name="PullOutboundBindFlow">
+        <zeromq:outbound-endpoint address="tcp://*:${pull.outbound.bind.flow.port}" socket-operation="bind" exchange-pattern="pull"/>
+    </flow>
+
+    <flow name="PushBindFlow">
+        <zeromq:outbound-endpoint address="tcp://*:${push.bind.flow.port}" socket-operation="bind" exchange-pattern="push"/>
+    </flow>
+
+    <flow name="PullOutboundConnectFlow">
+        <zeromq:outbound-endpoint address="tcp://localhost:${pull.outbound.connect.flow.port}" socket-operation="connect" exchange-pattern="pull"/>
+    </flow>
+
+    <flow name="PushConnectFlow">
+        <zeromq:outbound-endpoint address="tcp://localhost:${push.connect.flow.port}" socket-operation="connect" exchange-pattern="push"/>
+    </flow>
+
     <flow name="DynamicEndpointFlow">
         <zeromq:outbound-endpoint address="#[header:inbound:address]" socket-operation="#[header:inbound:socket-operation]" exchange-pattern="#[header:inbound:exchange-pattern]"/>
     </flow>
