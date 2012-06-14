@@ -34,6 +34,9 @@ public class InboundEndpointDefinitionParser extends ChildDefinitionParser {
         if ((element.getAttribute("filter") != null) && (!StringUtils.isBlank(element.getAttribute("filter")))) {
             builder.addPropertyValue("filter", element.getAttribute("filter"));
         }
+        if ((element.getAttribute("multipart") != null) && (!StringUtils.isBlank(element.getAttribute("multipart")))) {
+            builder.addPropertyValue("multipart", element.getAttribute("multipart"));
+        }
         if ((element.getAttribute("retryMax") != null) && (!StringUtils.isBlank(element.getAttribute("retryMax")))) {
             builder.addPropertyValue("retryMax", element.getAttribute("retryMax"));
         }

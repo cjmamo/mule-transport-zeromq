@@ -189,6 +189,11 @@
                             <xs:documentation>A password</xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
+                    <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
+                        <xs:annotation>
+                            <xs:documentation>A password</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
                 </xs:extension>
             </xs:complexContent>
         </xs:complexType>
@@ -238,6 +243,11 @@
                         <xs:documentation>A password</xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
+                <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
+                    <xs:annotation>
+                        <xs:documentation>A password</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -273,6 +283,11 @@
                     </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="filter" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Content to be processed</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
                     <xs:annotation>
                         <xs:documentation>Content to be processed</xs:documentation>
                     </xs:annotation>

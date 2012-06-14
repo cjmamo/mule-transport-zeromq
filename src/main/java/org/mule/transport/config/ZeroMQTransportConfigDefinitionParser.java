@@ -39,6 +39,9 @@ public class ZeroMQTransportConfigDefinitionParser implements BeanDefinitionPars
         if ((element.getAttribute("filter") != null) && (!StringUtils.isBlank(element.getAttribute("filter")))) {
             builder.addPropertyValue("filter", element.getAttribute("filter"));
         }
+        if ((element.getAttribute("multipart") != null) && (!StringUtils.isBlank(element.getAttribute("multipart")))) {
+            builder.addPropertyValue("multipart", element.getAttribute("multipart"));
+        }
         BeanDefinitionBuilder connectionPoolingProfileBuilder = BeanDefinitionBuilder.rootBeanDefinition(PoolingProfile.class.getName());
         Element connectionPoolingProfileElement = DomUtils.getChildElementByTagName(element, "connection-pooling-profile");
         if (connectionPoolingProfileElement != null) {

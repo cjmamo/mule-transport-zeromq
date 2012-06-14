@@ -37,7 +37,7 @@ public class OutboundEndpointMessageProcessor
         implements FlowConstructAware, MuleContextAware, Disposable, Initialisable, Startable, Stoppable, MessageProcessor, Runnable {
 
     private Object payload;
-    private byte[] _payloadType;
+    private Object _payloadType;
     private Object exchangePattern;
     private ZeroMQTransport.ExchangePattern _exchangePatternType;
     private Object socketOperation;
@@ -46,6 +46,8 @@ public class OutboundEndpointMessageProcessor
     private String _addressType;
     private Object filter;
     private String _filterType;
+    private Object multipart;
+    private Boolean _multipartType;
     private static Logger logger = LoggerFactory.getLogger(OutboundEndpointMessageProcessor.class);
     /**
      * Module object
@@ -199,6 +201,10 @@ public class OutboundEndpointMessageProcessor
      */
     public void setFilter(Object value) {
         this.filter = value;
+    }
+
+    public void setMultipart(Object value) {
+        this.multipart = value;
     }
 
     /**
@@ -421,6 +427,7 @@ public class OutboundEndpointMessageProcessor
         ZeroMQTransport.SocketOperation _transformedSocketOperation = null;
         String _transformedAddress = null;
         String _transformedFilter = null;
+        Boolean  _transformedMultipart = null;
         ZeroMQTransportLifecycleAdapter connection = null;
         try {
             if (exchangePattern != null) {
@@ -453,9 +460,16 @@ public class OutboundEndpointMessageProcessor
                 if (_castedModuleObject.getFilter() != null) {
                     _transformedFilter = ((String) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_filterType").getGenericType(), null, _castedModuleObject.getFilter(), true));
                 }
-
             }
-            byte[] _transformedPayload = ((byte[]) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_payloadType").getGenericType(), null, "#[payload]", true));
+            if (multipart != null) {
+                _transformedMultipart = ((Boolean) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_multipartType").getGenericType(), null, multipart, true));
+            } else {
+                if (_castedModuleObject.getFilter() != null) {
+                    _transformedMultipart = ((Boolean) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_multipartType").getGenericType(), null, _castedModuleObject.getMultipart(), true));
+                }
+            }
+
+            Object _transformedPayload = ((Object) evaluateAndTransform(_muleMessage, OutboundEndpointMessageProcessor.class.getDeclaredField("_payloadType").getGenericType(), null, "#[payload]", true));
             if (logger.isDebugEnabled()) {
                 StringBuilder _messageStringBuilder = new StringBuilder();
                 _messageStringBuilder.append("Attempting to acquire a connection using ");
@@ -488,7 +502,7 @@ public class OutboundEndpointMessageProcessor
             }
             retryCount.getAndIncrement();
             Object resultPayload;
-            resultPayload = connection.outboundEndpoint(_transformedPayload);
+            resultPayload = connection.outboundEndpoint(_transformedMultipart, _transformedPayload);
             TransformerTemplate.OverwitePayloadCallback overwritePayloadCallback = null;
             if (resultPayload == null) {
                 overwritePayloadCallback = new TransformerTemplate.OverwitePayloadCallback(NullPayload.getInstance());

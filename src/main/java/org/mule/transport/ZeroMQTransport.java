@@ -1,20 +1,16 @@
 package org.mule.transport;
 
 import org.mule.api.ConnectionException;
-import org.mule.api.annotations.*;
-import org.mule.api.annotations.lifecycle.Start;
-import org.mule.api.annotations.param.ConnectionKey;
-import org.mule.api.annotations.param.Optional;
-import org.mule.api.annotations.param.Payload;
+import org.mule.api.MuleContext;
 import org.mule.api.callback.SourceCallback;
-import org.mule.transformer.simple.ObjectToByteArray;
+import org.mule.api.transformer.Transformer;
+import org.mule.api.transformer.TransformerException;
+import org.mule.transformer.types.DataTypeFactory;
 import org.zeromq.ZMQ;
 
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 
-@Connector(name = "zeromq", schemaVersion = "1.0-SNAPSHOT")
 public class ZeroMQTransport {
 
     public enum ExchangePattern {
@@ -25,13 +21,18 @@ public class ZeroMQTransport {
         BIND, CONNECT
     }
 
+    private MuleContext muleContext;
+
     private ZMQ.Context zmqContext;
     private ZMQ.Socket zmqSocket;
     private ExchangePattern exchangePattern;
-    private ObjectToByteArray objectToByteArray;
+    private Transformer objectToByteArrayTransformer;
 
-    @Connect
-    public void connect(@ConnectionKey ExchangePattern exchangePattern, @ConnectionKey SocketOperation socketOperation, @ConnectionKey String address, @ConnectionKey String filter, boolean isInbound)
+    public void setMuleContext(MuleContext muleContext) {
+        this.muleContext = muleContext;
+    }
+
+    public void connect(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, boolean isInbound)
             throws ConnectionException {
 
         if (!isInbound) {
@@ -60,23 +61,19 @@ public class ZeroMQTransport {
         }
     }
 
-    @Start
-    public void initialise() {
+    public void initialise() throws TransformerException {
         zmqContext = ZMQ.context(1);
-        objectToByteArray = new ObjectToByteArray();
+        objectToByteArrayTransformer = muleContext.getRegistry().lookupTransformer(DataTypeFactory.create((Object.class)), DataTypeFactory.create((byte[].class)));
     }
 
-    @PreDestroy
     public void destroy() {
         zmqContext.term();
     }
 
-    @Disconnect
     public void disconnect() {
         zmqSocket.close();
     }
 
-    @ValidateConnection
     public boolean isConnected() {
         if (zmqSocket != null)
             return true;
@@ -84,37 +81,35 @@ public class ZeroMQTransport {
             return false;
     }
 
-    @ConnectionIdentifier
     public String connectionId() {
         return "001";
     }
 
-    @Processor
-    public byte[] outboundEndpoint(@Payload byte[] payload) throws Exception {
-        byte[] message;
+    public Object outboundEndpoint(Boolean multipart, Object payload) throws Exception {
+        Object message;
 
         switch (exchangePattern) {
             case REQUEST_RESPONSE:
-                zmqSocket.send(payload, 0);
-                message = zmqSocket.recv(0);
+                send(zmqSocket, payload, multipart);
+                message = receive(zmqSocket);
                 break;
             case PUBLISH:
-                zmqSocket.send(payload, 0);
+                send(zmqSocket, payload, multipart);
                 message = payload;
                 break;
             case ONE_WAY:
-                zmqSocket.send(payload, 0);
+                send(zmqSocket, payload, multipart);
                 message = payload;
                 break;
             case SUBSCRIBE:
-                message = zmqSocket.recv(0);
+                message = receive(zmqSocket);
                 break;
             case PUSH:
-                zmqSocket.send(payload, 0);
+                send(zmqSocket, payload, multipart);
                 message = payload;
                 break;
             case PULL:
-                message = zmqSocket.recv(0);
+                message = receive(zmqSocket);
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -123,8 +118,7 @@ public class ZeroMQTransport {
         return message;
     }
 
-    @Source
-    public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, @Optional String filter, SourceCallback callback) throws Exception {
+    public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, Boolean multipart, SourceCallback callback) throws Exception {
         Object message;
 
         switch (exchangePattern) {
@@ -133,7 +127,7 @@ public class ZeroMQTransport {
                 zmqSocket = requestResponseInbound(socketOperation, address);
                 message = receive(zmqSocket);
                 Object response = callback.process(message);
-                zmqSocket.send((byte[]) objectToByteArray.transform(response), 0);
+                send(zmqSocket, response, multipart);
                 break;
 
             case ONE_WAY:
@@ -173,6 +167,20 @@ public class ZeroMQTransport {
         }
     }
 
+    private void send(ZMQ.Socket zmqSocket, Object payload, boolean multipart) throws Exception {
+        if (!multipart) {
+            zmqSocket.send((byte[]) objectToByteArrayTransformer.transform(payload), 0);
+        } else {
+            List messageParts = (List) payload;
+
+            for (int i = 0; i < (messageParts.size() - 1); i++) {
+                zmqSocket.send((byte[]) objectToByteArrayTransformer.transform(messageParts.get(i)), ZMQ.SNDMORE);
+            }
+
+            zmqSocket.send((byte[]) objectToByteArrayTransformer.transform(messageParts.get(messageParts.size() - 1)), 0);
+        }
+    }
+
     private Object receive(ZMQ.Socket zmqSocket) {
         List<byte[]> messageParts = new ArrayList<byte[]>();
 
@@ -182,11 +190,10 @@ public class ZeroMQTransport {
             receive(zmqSocket, messageParts);
         }
 
-        if (messageParts.size() > 1) {
-            return messageParts;
-        }
-        else {
+        if (messageParts.size() < 2) {
             return messageParts.get(0);
+        } else {
+            return messageParts;
         }
     }
 

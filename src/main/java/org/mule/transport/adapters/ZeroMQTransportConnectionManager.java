@@ -10,7 +10,6 @@ import org.mule.api.construct.FlowConstruct;
 import org.mule.api.context.MuleContextAware;
 import org.mule.api.lifecycle.Disposable;
 import org.mule.api.lifecycle.Initialisable;
-import org.mule.api.lifecycle.Startable;
 import org.mule.api.lifecycle.Stoppable;
 import org.mule.config.PoolingProfile;
 import org.mule.transport.ZeroMQTransport;
@@ -40,6 +39,7 @@ public class ZeroMQTransportConnectionManager
      *
      */
     private String filter;
+    private Boolean multipart;
     private static Logger logger = LoggerFactory.getLogger(ZeroMQTransportConnectionManager.class);
     /**
      * Mule Context
@@ -135,6 +135,14 @@ public class ZeroMQTransportConnectionManager
         return this.filter;
     }
 
+    public Boolean getMultipart() {
+        return multipart;
+    }
+
+    public void setMultipart(Boolean multipart) {
+        this.multipart = multipart;
+    }
+
     /**
      * Sets flow construct
      *
@@ -207,12 +215,11 @@ public class ZeroMQTransportConnectionManager
                 throw new RuntimeException("Invalid key type");
             }
             ZeroMQTransportLifecycleAdapter connector = new ZeroMQTransportLifecycleAdapter();
-            if (connector instanceof Initialisable) {
-                connector.initialise();
-            }
-            if (connector instanceof Startable) {
-                connector.start();
-            }
+
+            connector.setMuleContext(connectionManager.muleContext);
+            connector.initialise();
+            connector.start();
+
             return connector;
         }
 
