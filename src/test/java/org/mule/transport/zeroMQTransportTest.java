@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleEventContext;
+import org.mule.api.MuleMessage;
 import org.mule.api.transport.PropertyScope;
 import org.mule.construct.Flow;
 import org.mule.module.client.MuleClient;
@@ -19,7 +20,9 @@ import org.mule.util.ArrayUtils;
 import org.mule.util.concurrent.Latch;
 import org.zeromq.ZMQ;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -31,34 +34,34 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     private static final int CONNECT_WAIT = 1000;
 
     @Rule
-    public DynamicPort requestResponseInboundBindFlowPort = new DynamicPort("request.response.inbound.bind.flow.port");
+    public DynamicPort requestResponseOnInboundBindFlowPort = new DynamicPort("requestresponse.oninbound.bind.flow.port");
 
     @Rule
-    public DynamicPort requestResponseInboundConnectFlowPort = new DynamicPort("request.response.inbound.connect.flow.port");
+    public DynamicPort requestResponseOnInboundConnectFlowPort = new DynamicPort("requestresponse.oninbound.connect.flow.port");
 
     @Rule
-    public DynamicPort subscribeInboundNoFilterFlowPort = new DynamicPort("subscribe.inbound.nofilter.flow.port");
+    public DynamicPort subscribeOnInboundNoFilterFlowPort = new DynamicPort("subscribe.oninbound.nofilter.flow.port");
 
     @Rule
-    public DynamicPort subscribeInboundFilterFlowPort = new DynamicPort("subscribe.inbound.filter.flow.port");
+    public DynamicPort subscribeOnInboundFilterFlowPort = new DynamicPort("subscribe.oninbound.filter.flow.port");
 
     @Rule
-    public DynamicPort pullInboundBindFlowPort = new DynamicPort("pull.inbound.bind.flow.port");
+    public DynamicPort pullOnInboundBindFlowPort = new DynamicPort("pull.oninbound.bind.flow.port");
 
     @Rule
-    public DynamicPort pullInboundConnectFlowPort = new DynamicPort("pull.inbound.connect.flow.port");
+    public DynamicPort pullOnInboundConnectFlowPort = new DynamicPort("pull.oninbound.connect.flow.port");
 
     @Rule
-    public DynamicPort requestResponseOutboundBindFlowPort = new DynamicPort("request.response.outbound.bind.flow.port");
+    public DynamicPort requestResponseOnOutboundBindFlowPort = new DynamicPort("requestresponse.onoutbound.bind.flow.port");
 
     @Rule
-    public DynamicPort subscribeOutboundNoFilterFlowPort = new DynamicPort("subscribe.outbound.nofilter.flow.port");
+    public DynamicPort subscribeOnOutboundNoFilterFlowPort = new DynamicPort("subscribe.onoutbound.nofilter.flow.port");
 
     @Rule
-    public DynamicPort subscribeOutboundFilterFlowPort = new DynamicPort("subscribe.outbound.filter.flow.port");
+    public DynamicPort subscribeOnOutboundFilterFlowPort = new DynamicPort("subscribe.onoutbound.filter.flow.port");
 
     @Rule
-    public DynamicPort requestResponseOutboundConnectFlowPort = new DynamicPort("request.response.outbound.connect.flow.port");
+    public DynamicPort requestResponseOnOutboundConnectFlowPort = new DynamicPort("requestresponse.onoutbound.connect.flow.port");
 
     @Rule
     public DynamicPort publishFlowSubscriber1Port = new DynamicPort("publish.flow.subscriber1.port");
@@ -67,16 +70,28 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     public DynamicPort publishFlowSubscriber2Port = new DynamicPort("publish.flow.subscriber2.port");
 
     @Rule
-    public DynamicPort pullOutboundBindFlowPort = new DynamicPort("pull.outbound.bind.flow.port");
+    public DynamicPort pullOnOutboundBindFlowPort = new DynamicPort("pull.onoutbound.bind.flow.port");
 
     @Rule
     public DynamicPort pushBindFlowPort = new DynamicPort("push.bind.flow.port");
 
     @Rule
-    public DynamicPort pullOutboundConnectFlowPort = new DynamicPort("pull.outbound.connect.flow.port");
+    public DynamicPort pullOnOutboundConnectFlowPort = new DynamicPort("pull.onoutbound.connect.flow.port");
 
     @Rule
     public DynamicPort pushConnectFlowPort = new DynamicPort("push.connect.flow.port");
+
+    @Rule
+    public DynamicPort pollSubscriberFlowPort = new DynamicPort("poll.subscriber.flow.port");
+
+    @Rule
+    public DynamicPort pollPullFlowPort = new DynamicPort("poll.pull.flow.port");
+
+    @Rule
+    public DynamicPort multiPartMessageOnInboundFlowPort = new DynamicPort("multipartmessage.oninbound.flow.port");
+
+    @Rule
+    public DynamicPort multiPartMessageOnOutboundFlowPort = new DynamicPort("multipartmessage.onoutbound.flow.port");
 
     private static ZMQ.Context zmqContext;
 
@@ -100,35 +115,103 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testRequestResponseOutboundBind() throws Exception {
+    public void testMultiPartMessageOnOutbound() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
+        List messageParts = new ArrayList<String>();
+
+        messageParts.add("The quick brown fox ");
+        messageParts.add("jumps over the lazy dog");
+
+        client.dispatch("vm://multipartmessage.onoutbound", new DefaultMuleMessage(messageParts, muleContext));
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
+        zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
+        zmqSocket.connect("tcp://localhost:" + multiPartMessageOnOutboundFlowPort.getNumber());
+
+
+        byte[] firstPart = zmqSocket.recv(0);
+        assertNotNull(firstPart);
+        assertEquals("The quick brown fox ", new String(firstPart));
+        assertTrue(zmqSocket.hasReceiveMore());
+
+        byte[] secondPart = zmqSocket.recv(0);
+        assertNotNull(firstPart);
+        assertEquals("jumps over the lazy dog", new String(secondPart));
+        assertFalse(zmqSocket.hasReceiveMore());
+
+        zmqSocket.close();
+    }
+
+    @Test
+    public void testMultiPartMessageOnInbound() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
+        zmqSocket.connect("tcp://localhost:" + multiPartMessageOnInboundFlowPort.getNumber());
+        zmqSocket.send("The quick brown fox ".getBytes(), ZMQ.SNDMORE);
+        zmqSocket.send("jumps over the lazy dog".getBytes(), 0);
+        zmqSocket.close();
+
+        MuleMessage subscribeMessage = client.request("vm://multipartmessage.oninbound", RECEIVE_TIMEOUT);
+        assertTrue(subscribeMessage.getPayload() instanceof List);
+        List<byte[]> messageParts = (List<byte[]>) subscribeMessage.getPayload();
+        assertEquals("The quick brown fox ", new String(messageParts.get(0)));
+        assertEquals("jumps over the lazy dog", new String(messageParts.get(1)));
+    }
+
+    @Test
+    public void testPoll() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.bind("tcp://*:" + pollSubscriberFlowPort.getNumber());
+        Thread.sleep(CONNECT_WAIT);
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+
+        MuleMessage subscribeMessage = client.request("vm://poll", RECEIVE_TIMEOUT);
+        assertEquals("The quick brown fox", subscribeMessage.getPayloadAsString());
+
+        zmqSocket = zmqContext.socket(ZMQ.PUSH);
+        zmqSocket.connect("tcp://localhost:" + pollPullFlowPort.getNumber());
+        zmqSocket.send("jumps over the lazy dog".getBytes(), 0);
+        zmqSocket.close();
+
+        MuleMessage pullMessage = client.request("vm://poll", RECEIVE_TIMEOUT);
+        assertEquals("jumps over the lazy dog", pullMessage.getPayloadAsString());
+
+    }
+
+    @Test
+    public void testRequestResponseOnOutboundBind() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
-                zmqSocket.connect("tcp://localhost:" + requestResponseOutboundBindFlowPort.getNumber());
+                zmqSocket.connect("tcp://localhost:" + requestResponseOnOutboundBindFlowPort.getNumber());
                 byte[] request = zmqSocket.recv(0);
                 zmqSocket.send(ArrayUtils.addAll(request, " jumps over the lazy dog".getBytes()), 0);
                 zmqSocket.close();
             }
         }).start();
 
-        runFlowWithPayloadAndExpect("RequestResponseOutboundBindFlow", "The quick brown fox jumps over the lazy dog", "The quick brown fox");
+        runFlowWithPayloadAndExpect("RequestResponseOnOutboundBindFlow", "The quick brown fox jumps over the lazy dog", "The quick brown fox");
     }
 
     @Test
-     public void testPullOutboundBind() throws Exception {
+    public void testPullOnOutboundBind() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
-                zmqSocket.connect("tcp://localhost:" + pullOutboundBindFlowPort.getNumber());
+                zmqSocket.connect("tcp://localhost:" + pullOnOutboundBindFlowPort.getNumber());
                 zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
                 zmqSocket.close();
 
             }
         }).start();
 
-        runFlowWithPayloadAndExpect("PullOutboundBindFlow", "The quick brown fox jumps over the lazy dog", null);
+        runFlowWithPayloadAndExpect("PullOnOutboundBindFlow", "The quick brown fox jumps over the lazy dog", null);
     }
 
     @Test
@@ -162,19 +245,18 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testPullOutboundConnect() throws Exception {
+    public void testPullOnOutboundConnect() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
-                zmqSocket.bind("tcp://*:" + pullOutboundConnectFlowPort.getNumber());
+                zmqSocket.bind("tcp://*:" + pullOnOutboundConnectFlowPort.getNumber());
                 zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
                 zmqSocket.close();
-
             }
         }).start();
 
-        runFlowWithPayloadAndExpect("PullOutboundConnectFlow", "The quick brown fox jumps over the lazy dog", null);
+        runFlowWithPayloadAndExpect("PullOnOutboundConnectFlow", "The quick brown fox jumps over the lazy dog", null);
     }
 
     @Test
@@ -232,19 +314,19 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testRequestResponseOutboundConnect() throws Exception {
+    public void testRequestResponseOnOutboundConnect() throws Exception {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
-                zmqSocket.bind("tcp://*:" + requestResponseOutboundConnectFlowPort.getNumber());
+                zmqSocket.bind("tcp://*:" + requestResponseOnOutboundConnectFlowPort.getNumber());
                 byte[] request = zmqSocket.recv(0);
                 zmqSocket.send(ArrayUtils.addAll(request, " jumps over the lazy dog".getBytes()), 0);
                 zmqSocket.close();
             }
         }).start();
 
-        runFlowWithPayloadAndExpect("RequestResponseOutboundConnectFlow", "The quick brown fox jumps over the lazy dog", "The quick brown fox");
+        runFlowWithPayloadAndExpect("RequestResponseOnOutboundConnectFlow", "The quick brown fox jumps over the lazy dog", "The quick brown fox");
     }
 
     @Test
@@ -296,13 +378,13 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testRequestResponseInboundBind() throws Exception {
+    public void testRequestResponseOnInboundBind() throws Exception {
 
-        getFunctionalTestComponent("RequestResponseInboundBindFlow").setEventCallback(this);
+        getFunctionalTestComponent("RequestResponseOnInboundBindFlow").setEventCallback(this);
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
         zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
-        zmqSocket.connect("tcp://localhost:" + requestResponseInboundBindFlowPort.getNumber());
+        zmqSocket.connect("tcp://localhost:" + requestResponseOnInboundBindFlowPort.getNumber());
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         byte[] response = zmqSocket.recv(0);
 
@@ -313,12 +395,12 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testRequestResponseInboundConnect() throws Exception {
-        getFunctionalTestComponent("RequestResponseInboundConnectFlow").setEventCallback(this);
+    public void testRequestResponseOnInboundConnect() throws Exception {
+        getFunctionalTestComponent("RequestResponseOnInboundConnectFlow").setEventCallback(this);
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
         zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
-        zmqSocket.bind("tcp://*:" + requestResponseInboundConnectFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + requestResponseOnInboundConnectFlowPort.getNumber());
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         byte[] response = zmqSocket.recv(0);
 
@@ -329,10 +411,10 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testSubscribeInboundNoFilter() throws Exception {
+    public void testSubscribeOnInboundNoFilter() throws Exception {
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("SubscribeInboundNoFilterFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("SubscribeOnInboundNoFilterFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
@@ -341,7 +423,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.bind("tcp://*:" + subscribeInboundNoFilterFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + subscribeOnInboundNoFilterFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
@@ -349,13 +431,13 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testSubscribeOutboundNoFilter() throws Exception {
+    public void testSubscribeOnOutboundNoFilter() throws Exception {
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-                zmqSocket.bind("tcp://*:" + subscribeOutboundNoFilterFlowPort.getNumber());
+                zmqSocket.bind("tcp://*:" + subscribeOnOutboundNoFilterFlowPort.getNumber());
                 try {
                     Thread.sleep(CONNECT_WAIT);
                     zmqSocket.send("The quick brown fox jumps over the lazy dog".getBytes(), 0);
@@ -367,15 +449,15 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
             }
         }).start();
 
-        runFlowWithPayloadAndExpect("SubscribeOutboundNoFilterFlow", "The quick brown fox jumps over the lazy dog", null);
+        runFlowWithPayloadAndExpect("SubscribeOnOutboundNoFilterFlow", "The quick brown fox jumps over the lazy dog", null);
     }
 
     @Test
-    public void testSubscribeOutboundFilterReject() throws Exception {
+    public void testSubscribeOnOutboundFilterReject() throws Exception {
 
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("SubscribeOutboundFilterFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("SubscribeOnOutboundFilterFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 messageLatch.countDown();
@@ -383,12 +465,12 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         MuleClient client = new MuleClient(muleContext);
-        client.dispatch("vm://subscribe.outbound.filter", new DefaultMuleMessage(null, muleContext));
+        client.dispatch("vm://subscribe.onoutbound.filter", new DefaultMuleMessage(null, muleContext));
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-                zmqSocket.bind("tcp://*:" + subscribeOutboundFilterFlowPort.getNumber());
+                zmqSocket.bind("tcp://*:" + subscribeOnOutboundFilterFlowPort.getNumber());
                 try {
                     Thread.sleep(CONNECT_WAIT);
                     zmqSocket.send("Bar".getBytes(), 0);
@@ -403,11 +485,11 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testSubscribeOutboundFilterAccept() throws Exception {
+    public void testSubscribeOnOutboundFilterAccept() throws Exception {
 
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("SubscribeOutboundFilterFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("SubscribeOnOutboundFilterFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 messageLatch.countDown();
@@ -415,13 +497,13 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         MuleClient client = new MuleClient(muleContext);
-        client.dispatch("vm://subscribe.outbound.filter", new DefaultMuleMessage(null, muleContext));
+        client.dispatch("vm://subscribe.onoutbound.filter", new DefaultMuleMessage(null, muleContext));
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-                zmqSocket.bind("tcp://*:" + subscribeOutboundFilterFlowPort.getNumber());
+                zmqSocket.bind("tcp://*:" + subscribeOnOutboundFilterFlowPort.getNumber());
                 try {
                     Thread.sleep(CONNECT_WAIT);
                     zmqSocket.send("Foo".getBytes(), 0);
@@ -434,14 +516,14 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         }).start();
 
         assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
-        getFunctionalTestComponent("SubscribeOutboundFilterFlow").getLastReceivedMessage().equals("Foo");
+        getFunctionalTestComponent("SubscribeOnOutboundFilterFlow").getLastReceivedMessage().equals("Foo");
     }
 
     @Test
-    public void testSubscribeInboundFilterReject() throws Exception {
+    public void testSubscribeOnInboundFilterReject() throws Exception {
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("SubscribeInboundFilterFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("SubscribeOnInboundFilterFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 messageLatch.countDown();
@@ -449,7 +531,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.bind("tcp://*:" + subscribeInboundFilterFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + subscribeOnInboundFilterFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("Bar".getBytes(), 0);
         zmqSocket.close();
@@ -457,10 +539,10 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testSubscribeInboundFilterAccept() throws Exception {
+    public void testSubscribeOnInboundFilterAccept() throws Exception {
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("SubscribeInboundFilterFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("SubscribeOnInboundFilterFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 assertEquals("Foo", ((FunctionalTestComponent) component).getLastReceivedMessage());
@@ -469,7 +551,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.bind("tcp://*:" + subscribeInboundFilterFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + subscribeOnInboundFilterFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("Foo".getBytes(), 0);
         zmqSocket.close();
@@ -477,10 +559,10 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testPullInboundBind() throws Exception {
+    public void testPullOnInboundBind() throws Exception {
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("PullInboundBindFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("PullOnInboundBindFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
@@ -489,17 +571,17 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.connect("tcp://localhost:" + pullInboundBindFlowPort.getNumber());
+        zmqSocket.connect("tcp://localhost:" + pullOnInboundBindFlowPort.getNumber());
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
         assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void testPullInboundConnect() throws Exception {
+    public void testPullOnInboundConnect() throws Exception {
         final CountDownLatch messageLatch = new Latch();
 
-        getFunctionalTestComponent("PullInboundConnectFlow").setEventCallback(new EventCallback() {
+        getFunctionalTestComponent("PullOnInboundConnectFlow").setEventCallback(new EventCallback() {
             @Override
             public void eventReceived(MuleEventContext context, Object component) throws Exception {
                 assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
@@ -508,7 +590,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         });
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.bind("tcp://*:" + pullInboundConnectFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + pullOnInboundConnectFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
