@@ -1,297 +1,317 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xs:schema xmlns:mule="http://www.mulesoft.org/schema/mule/core" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" targetNamespace="http://www.mulesoft.org/schema/mule/zeromq">
-  <xs:import namespace="http://www.w3.org/XML/1998/namespace"></xs:import>
-  <xs:import schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd" namespace="http://www.springframework.org/schema/beans"></xs:import>
-  <xs:import schemaLocation="http://www.mulesoft.org/schema/mule/core/current/mule.xsd" namespace="http://www.mulesoft.org/schema/mule/core"></xs:import>
-  <xs:import schemaLocation="http://www.mulesoft.org/schema/mule/devkit/current/mule-devkit.xsd" namespace="http://www.mulesoft.org/schema/mule/devkit"></xs:import>
-  <xs:simpleType name="integerType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:integer"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="decimalType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:decimal"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="floatType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:float"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="doubleType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:double"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="dateTimeType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:dateTime"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="longType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:long"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="byteType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:byte"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="booleanType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:boolean"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="anyUriType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:anyURI"></xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="charType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:minLength value="1"></xs:minLength>
-          <xs:maxLength value="1"></xs:maxLength>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:complexType name="XmlType">
-    <xs:sequence>
-      <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xs:any>
-    </xs:sequence>
-    <xs:attribute name="ref" use="optional" type="xs:string">
-      <xs:annotation>
-        <xs:documentation>The reference object for this parameter</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-  </xs:complexType>
-  <xs:element xmlns:devkit="http://www.mulesoft.org/schema/mule/devkit" xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="config" substitutionGroup="mule:abstract-extension" devkit:javaClass="org.mule.transport.adapters.ZeroMQTransportConnectionManager">
-    <xs:complexType>
-      <xs:complexContent>
-        <xs:extension base="mule:abstractExtensionType">
-          <xs:annotation>
-            <xs:documentation>ZeroMQ Transport</xs:documentation>
-          </xs:annotation>
-          <xs:sequence>
-            <xs:element name="connection-pooling-profile" minOccurs="0" type="mule:poolingProfileType">
-              <xs:annotation>
-                <xs:documentation>Characteristics of the connection pool.</xs:documentation>
-              </xs:annotation>
-            </xs:element>
-          </xs:sequence>
-          <xs:attribute name="name" use="optional" type="xs:string">
+<xs:schema xmlns:mule="http://www.mulesoft.org/schema/mule/core" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified" attributeFormDefault="unqualified"
+           targetNamespace="http://www.mulesoft.org/schema/mule/zeromq">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace"></xs:import>
+    <xs:import schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+               namespace="http://www.springframework.org/schema/beans"></xs:import>
+    <xs:import schemaLocation="http://www.mulesoft.org/schema/mule/core/current/mule.xsd"
+               namespace="http://www.mulesoft.org/schema/mule/core"></xs:import>
+    <xs:import schemaLocation="http://www.mulesoft.org/schema/mule/devkit/current/mule-devkit.xsd"
+               namespace="http://www.mulesoft.org/schema/mule/devkit"></xs:import>
+    <xs:simpleType name="integerType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:integer"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="decimalType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:decimal"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="floatType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:float"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="doubleType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:double"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="dateTimeType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:dateTime"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="longType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:long"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="byteType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:byte"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="booleanType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:boolean"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="anyUriType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:anyURI"></xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="charType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"></xs:minLength>
+                    <xs:maxLength value="1"></xs:maxLength>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="(\#\[[^\]]+\]|\$\{[^\}]+\})"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:complexType name="XmlType">
+        <xs:sequence>
+            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xs:any>
+        </xs:sequence>
+        <xs:attribute name="ref" use="optional" type="xs:string">
             <xs:annotation>
-              <xs:documentation>Give a name to this configuration so it can be later referenced by config-ref.</xs:documentation>
+                <xs:documentation>The reference object for this parameter</xs:documentation>
             </xs:annotation>
-          </xs:attribute>
-          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional" type="ExchangePatternEnumType">
-            <xs:annotation>
-              <xs:documentation>A password</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional" type="SocketOperationEnumType">
-            <xs:annotation>
-              <xs:documentation>A username</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="address" use="optional" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>A password</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="filter" use="optional" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>A password</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-        </xs:extension>
-      </xs:complexContent>
+        </xs:attribute>
     </xs:complexType>
-  </xs:element>
-  <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="outbound-endpoint" substitutionGroup="mule:abstract-message-processor" type="OutboundEndpointType">
-    <xs:annotation>
-      <xs:documentation>Custom processor
-&lt;p/&gt;</xs:documentation>
-    </xs:annotation>
-  </xs:element>
-  <xs:complexType name="OutboundEndpointType">
-    <xs:complexContent>
-      <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
-        <xs:attribute name="config-ref" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="retryMax" default="1" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>Specify how many times this operation can be retried automatically.</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional" type="ExchangePatternEnumType">
-          <xs:annotation>
-            <xs:documentation>A password</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional" type="SocketOperationEnumType">
-          <xs:annotation>
-            <xs:documentation>A username</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="address" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>A password</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="filter" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>A password</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="inbound-endpoint" substitutionGroup="mule:abstract-inbound-endpoint" type="InboundEndpointType">
-    <xs:annotation>
-      <xs:documentation>Custom processor
-&lt;p/&gt;</xs:documentation>
-    </xs:annotation>
-  </xs:element>
-  <xs:complexType name="InboundEndpointType">
-    <xs:complexContent>
-      <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractInboundEndpointType">
-        <xs:attribute name="config-ref" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="required" type="ExchangePatternEnumType">
-          <xs:annotation>
-            <xs:documentation>Content to be processed</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="required" type="SocketOperationEnumType">
-          <xs:annotation>
-            <xs:documentation>Content to be processed</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="address" use="required" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>Content to be processed</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="filter" use="optional" type="xs:string">
-          <xs:annotation>
-            <xs:documentation>Content to be processed</xs:documentation>
-          </xs:annotation>
-        </xs:attribute>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:simpleType name="SocketOperationEnumType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:enumeration value="bind"></xs:enumeration>
-          <xs:enumeration value="connect"></xs:enumeration>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="\#\[[^\]]+\]"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="ExchangePatternEnumType">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:enumeration value="request-response"></xs:enumeration>
-          <xs:enumeration value="one-way"></xs:enumeration>
-          <xs:enumeration value="publish"></xs:enumeration>
-          <xs:enumeration value="subscribe"></xs:enumeration>
-          <xs:enumeration value="push"></xs:enumeration>
-          <xs:enumeration value="pull"></xs:enumeration>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:pattern value="\#\[[^\]]+\]"></xs:pattern>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
+    <xs:element xmlns:devkit="http://www.mulesoft.org/schema/mule/devkit"
+                xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="config"
+                substitutionGroup="mule:abstract-extension"
+                devkit:javaClass="org.mule.transport.adapters.ZeroMQTransportConnectionManager">
+        <xs:complexType>
+            <xs:complexContent>
+                <xs:extension base="mule:abstractExtensionType">
+                    <xs:annotation>
+                        <xs:documentation>ZeroMQ Transport</xs:documentation>
+                    </xs:annotation>
+                    <xs:sequence>
+                        <xs:element name="connection-pooling-profile" minOccurs="0" type="mule:poolingProfileType">
+                            <xs:annotation>
+                                <xs:documentation>Characteristics of the connection pool.</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="name" use="optional" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Give a name to this configuration so it can be later referenced by
+                                config-ref.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern"
+                                  use="optional" type="ExchangePatternEnumType">
+                        <xs:annotation>
+                            <xs:documentation>A password</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation"
+                                  use="optional" type="SocketOperationEnumType">
+                        <xs:annotation>
+                            <xs:documentation>A username</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="address" use="optional" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>A password</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="filter" use="optional" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>A password</xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+                name="outbound-endpoint" substitutionGroup="mule:abstract-message-processor"
+                type="OutboundEndpointType">
+        <xs:annotation>
+            <xs:documentation>Custom processor
+                &lt;p/&gt;</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="OutboundEndpointType">
+        <xs:complexContent>
+            <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+                          base="mule:abstractMessageProcessorType">
+                <xs:attribute name="config-ref" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="retryMax" default="1" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Specify how many times this operation can be retried automatically.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional"
+                              type="ExchangePatternEnumType">
+                    <xs:annotation>
+                        <xs:documentation>A password</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional"
+                              type="SocketOperationEnumType">
+                    <xs:annotation>
+                        <xs:documentation>A username</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="address" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>A password</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="filter" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>A password</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+                name="inbound-endpoint" substitutionGroup="mule:abstract-inbound-endpoint" type="InboundEndpointType">
+        <xs:annotation>
+            <xs:documentation>Custom processor</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="InboundEndpointType">
+        <xs:complexContent>
+            <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractInboundEndpointType">
+                <xs:attribute name="config-ref" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="required"
+                              type="ExchangePatternEnumType">
+                    <xs:annotation>
+                        <xs:documentation>Content to be processed</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="required"
+                              type="SocketOperationEnumType">
+                    <xs:annotation>
+                        <xs:documentation>Content to be processed</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="address" use="required" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Content to be processed</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="filter" use="optional" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Content to be processed</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:simpleType name="SocketOperationEnumType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="bind"></xs:enumeration>
+                    <xs:enumeration value="connect"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="\#\[[^\]]+\]"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="ExchangePatternEnumType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="request-response"></xs:enumeration>
+                    <xs:enumeration value="one-way"></xs:enumeration>
+                    <xs:enumeration value="publish"></xs:enumeration>
+                    <xs:enumeration value="subscribe"></xs:enumeration>
+                    <xs:enumeration value="push"></xs:enumeration>
+                    <xs:enumeration value="pull"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="\#\[[^\]]+\]"></xs:pattern>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
 </xs:schema>

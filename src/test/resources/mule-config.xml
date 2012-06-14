@@ -13,81 +13,117 @@
         http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
         http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/1.0-SNAPSHOT/mule-zeromq.xsd">
 
+    <zeromq:config/>
+
     <flow name="RequestResponseOutboundBindFlow">
-        <zeromq:outbound-endpoint address="tcp://*:${request.response.outbound.bind.flow.port}" socket-operation="bind" exchange-pattern="request-response"/>
+        <zeromq:outbound-endpoint address="tcp://*:${request.response.outbound.bind.flow.port}" socket-operation="bind"
+                                  exchange-pattern="request-response"/>
     </flow>
 
     <flow name="PullOutboundBindFlow">
-        <zeromq:outbound-endpoint address="tcp://*:${pull.outbound.bind.flow.port}" socket-operation="bind" exchange-pattern="pull"/>
+        <zeromq:outbound-endpoint address="tcp://*:${pull.outbound.bind.flow.port}" socket-operation="bind"
+                                  exchange-pattern="pull"/>
+    </flow>
+
+    <flow name="PollFlow">
+        <composite-source>
+            <zeromq:inbound-endpoint address="tcp://localhost:${poll.subscriber.flow.port}" socket-operation="connect"
+                                     exchange-pattern="subscribe"/>
+            <zeromq:inbound-endpoint address="tcp://*:${poll.pull.flow.port}" socket-operation="bind"
+                                     exchange-pattern="pull"/>
+        </composite-source>
+        <vm:outbound-endpoint path="poll"/>
     </flow>
 
     <flow name="PushBindFlow">
-        <zeromq:outbound-endpoint address="tcp://*:${push.bind.flow.port}" socket-operation="bind" exchange-pattern="push"/>
+        <zeromq:outbound-endpoint address="tcp://*:${push.bind.flow.port}" socket-operation="bind"
+                                  exchange-pattern="push"/>
     </flow>
 
     <flow name="PullOutboundConnectFlow">
-        <zeromq:outbound-endpoint address="tcp://localhost:${pull.outbound.connect.flow.port}" socket-operation="connect" exchange-pattern="pull"/>
+        <zeromq:outbound-endpoint address="tcp://localhost:${pull.outbound.connect.flow.port}"
+                                  socket-operation="connect" exchange-pattern="pull"/>
     </flow>
 
     <flow name="PushConnectFlow">
-        <zeromq:outbound-endpoint address="tcp://localhost:${push.connect.flow.port}" socket-operation="connect" exchange-pattern="push"/>
+        <zeromq:outbound-endpoint address="tcp://localhost:${push.connect.flow.port}" socket-operation="connect"
+                                  exchange-pattern="push"/>
     </flow>
 
     <flow name="DynamicEndpointFlow">
-        <zeromq:outbound-endpoint address="#[header:inbound:address]" socket-operation="#[header:inbound:socket-operation]" exchange-pattern="#[header:inbound:exchange-pattern]"/>
+        <zeromq:outbound-endpoint address="#[header:inbound:address]"
+                                  socket-operation="#[header:inbound:socket-operation]"
+                                  exchange-pattern="#[header:inbound:exchange-pattern]"/>
+    </flow>
+
+    <flow name="MultiPartMessageInboundFlow">
+        <zeromq:inbound-endpoint address="tcp://*:${multipartmessage.inbound.flow.port}"
+                                 socket-operation="bind" exchange-pattern="one-way"/>
+        <vm:outbound-endpoint path="multipartmessage.inbound"/>
     </flow>
 
     <flow name="RequestResponseOutboundConnectFlow">
-        <zeromq:outbound-endpoint address="tcp://localhost:${request.response.outbound.connect.flow.port}" socket-operation="connect" exchange-pattern="request-response"/>
+        <zeromq:outbound-endpoint address="tcp://localhost:${request.response.outbound.connect.flow.port}"
+                                  socket-operation="connect" exchange-pattern="request-response"/>
     </flow>
 
     <flow name="PublishFlow">
         <test:component appendString=" jumps over the lazy dog"/>
-        <zeromq:outbound-endpoint address="tcp://*:${publish.flow.subscriber1.port};tcp://*:${publish.flow.subscriber2.port}" socket-operation="bind" exchange-pattern="publish"/>
+        <zeromq:outbound-endpoint
+                address="tcp://*:${publish.flow.subscriber1.port};tcp://*:${publish.flow.subscriber2.port}"
+                socket-operation="bind" exchange-pattern="publish"/>
     </flow>
 
     <flow name="SubscribeOutboundNoFilterFlow">
-        <zeromq:outbound-endpoint address="tcp://localhost:${subscribe.outbound.nofilter.flow.port}" socket-operation="connect" exchange-pattern="subscribe"/>
+        <zeromq:outbound-endpoint address="tcp://localhost:${subscribe.outbound.nofilter.flow.port}"
+                                  socket-operation="connect" exchange-pattern="subscribe"/>
     </flow>
 
     <flow name="SubscribeOutboundFilterFlow">
         <vm:inbound-endpoint path="subscribe.outbound.filter" exchange-pattern="one-way"/>
-        <zeromq:outbound-endpoint filter="Foo" address="tcp://localhost:${subscribe.outbound.filter.flow.port}" socket-operation="connect" exchange-pattern="subscribe"/>
+        <zeromq:outbound-endpoint filter="Foo" address="tcp://localhost:${subscribe.outbound.filter.flow.port}"
+                                  socket-operation="connect" exchange-pattern="subscribe"/>
         <test:component/>
     </flow>
 
     <flow name="RequestResponseInboundBindFlow">
-        <zeromq:inbound-endpoint address="tcp://*:${request.response.inbound.bind.flow.port}" socket-operation="bind" exchange-pattern="request-response"/>
+        <zeromq:inbound-endpoint address="tcp://*:${request.response.inbound.bind.flow.port}" socket-operation="bind"
+                                 exchange-pattern="request-response"/>
         <byte-array-to-string-transformer/>
         <test:component appendString=" jumps over the lazy dog"/>
     </flow>
 
     <flow name="RequestResponseInboundConnectFlow">
-        <zeromq:inbound-endpoint address="tcp://localhost:${request.response.inbound.connect.flow.port}" socket-operation="connect" exchange-pattern="request-response"/>
+        <zeromq:inbound-endpoint address="tcp://localhost:${request.response.inbound.connect.flow.port}"
+                                 socket-operation="connect" exchange-pattern="request-response"/>
         <byte-array-to-string-transformer/>
         <test:component appendString=" jumps over the lazy dog"/>
     </flow>
 
     <flow name="SubscribeInboundNoFilterFlow">
-        <zeromq:inbound-endpoint address="tcp://localhost:${subscribe.inbound.nofilter.flow.port}" socket-operation="connect" exchange-pattern="subscribe"/>
+        <zeromq:inbound-endpoint address="tcp://localhost:${subscribe.inbound.nofilter.flow.port}"
+                                 socket-operation="connect" exchange-pattern="subscribe"/>
         <byte-array-to-string-transformer/>
         <test:component/>
     </flow>
 
     <flow name="SubscribeInboundFilterFlow">
-        <zeromq:inbound-endpoint filter="Foo" address="tcp://localhost:${subscribe.inbound.filter.flow.port}" socket-operation="connect" exchange-pattern="subscribe"/>
+        <zeromq:inbound-endpoint filter="Foo" address="tcp://localhost:${subscribe.inbound.filter.flow.port}"
+                                 socket-operation="connect" exchange-pattern="subscribe"/>
         <byte-array-to-string-transformer/>
         <test:component appendString=" jumps over the lazy dog"/>
     </flow>
 
     <flow name="PullInboundBindFlow">
-        <zeromq:inbound-endpoint address="tcp://*:${pull.inbound.bind.flow.port}" socket-operation="bind" exchange-pattern="pull"/>
+        <zeromq:inbound-endpoint address="tcp://*:${pull.inbound.bind.flow.port}" socket-operation="bind"
+                                 exchange-pattern="pull"/>
         <byte-array-to-string-transformer/>
         <test:component/>
     </flow>
 
     <flow name="PullInboundConnectFlow">
-        <zeromq:inbound-endpoint address="tcp://localhost:${pull.inbound.connect.flow.port}" socket-operation="connect" exchange-pattern="pull"/>
+        <zeromq:inbound-endpoint address="tcp://localhost:${pull.inbound.connect.flow.port}" socket-operation="connect"
+                                 exchange-pattern="pull"/>
         <byte-array-to-string-transformer/>
         <test:component/>
     </flow>

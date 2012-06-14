@@ -308,6 +308,9 @@ public class ZeroMQTransportConnectionManager
             this.setInbound(isInbound);
         }
 
+        public ConnectionKey() {
+        }
+
         /**
          * Sets socketOperation
          *

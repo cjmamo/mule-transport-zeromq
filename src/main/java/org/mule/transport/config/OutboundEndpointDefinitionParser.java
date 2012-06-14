@@ -5,7 +5,6 @@ import org.apache.commons.lang.StringUtils;
 import org.mule.config.spring.MuleHierarchicalBeanDefinitionParserDelegate;
 import org.mule.config.spring.util.SpringXMLUtils;
 import org.mule.transport.processors.OutboundEndpointMessageProcessor;
-import org.mule.util.TemplateParser;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -17,19 +16,8 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-public class OutboundEndpointDefinitionParser
-    implements BeanDefinitionParser
+public class OutboundEndpointDefinitionParser implements BeanDefinitionParser
 {
-
-    /**
-     * Mule Pattern Info
-     * 
-     */
-    private TemplateParser.PatternInfo patternInfo;
-
-    public OutboundEndpointDefinitionParser() {
-        patternInfo = TemplateParser.createMuleStyleParser().getStyle();
-    }
 
     public BeanDefinition parse(Element element, ParserContext parserContent) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(OutboundEndpointMessageProcessor.class.getName());

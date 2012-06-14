@@ -11,6 +11,8 @@ import org.mule.transformer.simple.ObjectToByteArray;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.List;
 
 @Connector(name = "zeromq", schemaVersion = "1.0-SNAPSHOT")
 public class ZeroMQTransport {
@@ -37,13 +39,13 @@ public class ZeroMQTransport {
 
             switch (exchangePattern) {
                 case REQUEST_RESPONSE:
-                    zmqSocket = requestResponseSender(socketOperation, address);
+                    zmqSocket = requestResponseOutbound(socketOperation, address);
                     break;
                 case PUBLISH:
                     zmqSocket = publish(socketOperation, address);
                     break;
                 case ONE_WAY:
-                    zmqSocket = requestResponseSender(socketOperation, address);
+                    zmqSocket = requestResponseOutbound(socketOperation, address);
                     break;
                 case SUBSCRIBE:
                     zmqSocket = subscribe(socketOperation, address, filter);
@@ -123,26 +125,26 @@ public class ZeroMQTransport {
 
     @Source
     public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, @Optional String filter, SourceCallback callback) throws Exception {
-        byte[] message = null;
+        Object message;
 
         switch (exchangePattern) {
 
             case REQUEST_RESPONSE:
-                zmqSocket = requestResponseReceiver(socketOperation, address);
-                message = zmqSocket.recv(0);
+                zmqSocket = requestResponseInbound(socketOperation, address);
+                message = receive(zmqSocket);
                 Object response = callback.process(message);
                 zmqSocket.send((byte[]) objectToByteArray.transform(response), 0);
                 break;
 
             case ONE_WAY:
-                zmqSocket = requestResponseReceiver(socketOperation, address);
-                message = zmqSocket.recv(0);
+                zmqSocket = requestResponseInbound(socketOperation, address);
+                message = receive(zmqSocket);
                 callback.process(message);
                 break;
 
             case SUBSCRIBE:
                 zmqSocket = subscribe(socketOperation, address, filter);
-                message = zmqSocket.recv(0);
+                message = receive(zmqSocket);
                 callback.process(message);
                 break;
 
@@ -154,9 +156,37 @@ public class ZeroMQTransport {
 
             case PULL:
                 zmqSocket = pull(socketOperation, address);
-                message = zmqSocket.recv(0);
+                message = receive(zmqSocket);
                 callback.process(message);
                 break;
+
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
+
+    private void receive(ZMQ.Socket zmqSocket, List<byte[]> messageParts) {
+        messageParts.add(zmqSocket.recv(0));
+
+        while (zmqSocket.hasReceiveMore()) {
+            receive(zmqSocket, messageParts);
+        }
+    }
+
+    private Object receive(ZMQ.Socket zmqSocket) {
+        List<byte[]> messageParts = new ArrayList<byte[]>();
+
+        messageParts.add(zmqSocket.recv(0));
+
+        while (zmqSocket.hasReceiveMore()) {
+            receive(zmqSocket, messageParts);
+        }
+
+        if (messageParts.size() > 1) {
+            return messageParts;
+        }
+        else {
+            return messageParts.get(0);
         }
     }
 
@@ -188,14 +218,14 @@ public class ZeroMQTransport {
         return zmqSocket;
     }
 
-    private ZMQ.Socket requestResponseReceiver(SocketOperation socketOperation, String address) {
+    private ZMQ.Socket requestResponseInbound(SocketOperation socketOperation, String address) {
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
         prepare(zmqSocket, socketOperation, address);
 
         return zmqSocket;
     }
 
-    private ZMQ.Socket requestResponseSender(SocketOperation socketOperation, String address) {
+    private ZMQ.Socket requestResponseOutbound(SocketOperation socketOperation, String address) {
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
         prepare(zmqSocket, socketOperation, address);
 
