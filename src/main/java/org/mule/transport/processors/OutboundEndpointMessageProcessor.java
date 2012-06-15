@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.mule.transport.processors;
 
 import org.mule.api.*;
@@ -30,9 +48,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-/**
- * OutboundEndpointMessageProcessor invokes the {@link org.mule.transport.ZeroMQTransport#outboundEndpoint(byte[])} method in {@link org.mule.transport.ZeroMQTransport }. For each argument there is a field in this processor to match it.  Before invoking the actual method the processor will evaluate and transform where possible to the expected argument type.
- */
 public class OutboundEndpointMessageProcessor
         implements FlowConstructAware, MuleContextAware, Disposable, Initialisable, Startable, Stoppable, MessageProcessor, Runnable {
 
@@ -49,33 +64,13 @@ public class OutboundEndpointMessageProcessor
     private Object multipart;
     private Boolean _multipartType;
     private static Logger logger = LoggerFactory.getLogger(OutboundEndpointMessageProcessor.class);
-    /**
-     * Module object
-     */
+
     private Object moduleObject;
-    /**
-     * Mule Context
-     */
     private MuleContext muleContext;
-    /**
-     * Mule Expression Manager
-     */
     private ExpressionManager expressionManager;
-    /**
-     * Mule Pattern Info
-     */
     private TemplateParser.PatternInfo patternInfo;
-    /**
-     * Flow construct
-     */
     private FlowConstruct flowConstruct;
-    /**
-     * Variable used to track how many retries we have attempted on this message processor
-     */
     private AtomicInteger retryCount;
-    /**
-     * Maximum number of retries that can be attempted.
-     */
     private int retryMax;
 
     /**
@@ -84,8 +79,7 @@ public class OutboundEndpointMessageProcessor
      * @throws org.mule.api.lifecycle.InitialisationException
      *
      */
-    public void initialise()
-            throws InitialisationException {
+    public void initialise() throws InitialisationException {
         retryCount = new AtomicInteger();
         expressionManager = muleContext.getExpressionManager();
         patternInfo = TemplateParser.createMuleStyleParser().getStyle();
@@ -122,83 +116,38 @@ public class OutboundEndpointMessageProcessor
     public void dispose() {
     }
 
-    /**
-     * Set the Mule context
-     *
-     * @param context Mule context to set
-     */
     public void setMuleContext(MuleContext context) {
         this.muleContext = context;
     }
 
-    /**
-     * Sets flow construct
-     *
-     * @param flowConstruct Flow construct to set
-     */
     public void setFlowConstruct(FlowConstruct flowConstruct) {
         this.flowConstruct = flowConstruct;
     }
 
-    /**
-     * Sets the instance of the object under which the processor will execute
-     *
-     * @param moduleObject Instace of the module
-     */
     public void setModuleObject(Object moduleObject) {
         this.moduleObject = moduleObject;
     }
 
-    /**
-     * Sets retryMax
-     *
-     * @param value Value to set
-     */
     public void setRetryMax(int value) {
         this.retryMax = value;
     }
 
-    /**
-     * Sets payload
-     *
-     * @param value Value to set
-     */
     public void setPayload(Object value) {
         this.payload = value;
     }
 
-    /**
-     * Sets socketOperation
-     *
-     * @param value Value to set
-     */
     public void setSocketOperation(Object value) {
         this.socketOperation = value;
     }
 
-    /**
-     * Sets address
-     *
-     * @param value Value to set
-     */
     public void setAddress(Object value) {
         this.address = value;
     }
 
-    /**
-     * Sets exchangePattern
-     *
-     * @param value Value to set
-     */
     public void setExchangePattern(Object value) {
         this.exchangePattern = value;
     }
 
-    /**
-     * Sets filter
-     *
-     * @param value Value to set
-     */
     public void setFilter(Object value) {
         this.filter = value;
     }

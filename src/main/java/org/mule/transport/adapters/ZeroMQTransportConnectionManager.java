@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.mule.transport.adapters;
 
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
@@ -17,120 +35,57 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/**
- * A {@code ZeroMQTransportConnectionManager} is a wrapper around {@link org.mule.transport.ZeroMQTransport } that adds connection management capabilities to the pojo.
- */
 public class ZeroMQTransportConnectionManager
         implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZeroMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
 
-    /**
-     *
-     */
+
     private ZeroMQTransport.ExchangePattern exchangePattern;
-    /**
-     *
-     */
     private ZeroMQTransport.SocketOperation socketOperation;
-    /**
-     *
-     */
     private String address;
-    /**
-     *
-     */
     private String filter;
     private Boolean multipart;
     private static Logger logger = LoggerFactory.getLogger(ZeroMQTransportConnectionManager.class);
-    /**
-     * Mule Context
-     */
     private MuleContext muleContext;
-    /**
-     * Flow construct
-     */
     private FlowConstruct flowConstruct;
-    /**
-     * Connector Pool
-     */
     private GenericKeyedObjectPool connectionPool;
     protected PoolingProfile connectionPoolingProfile;
 
-    /**
-     * Sets connectionPoolingProfile
-     *
-     * @param value Value to set
-     */
     public void setConnectionPoolingProfile(PoolingProfile value) {
         this.connectionPoolingProfile = value;
     }
 
-    /**
-     * Retrieves connectionPoolingProfile
-     */
     public PoolingProfile getConnectionPoolingProfile() {
         return this.connectionPoolingProfile;
     }
 
-    /**
-     * Sets socketOperation
-     *
-     * @param value Value to set
-     */
     public void setSocketOperation(ZeroMQTransport.SocketOperation value) {
         this.socketOperation = value;
     }
 
-    /**
-     * Retrieves socketOperation
-     */
     public ZeroMQTransport.SocketOperation getSocketOperation() {
         return this.socketOperation;
     }
 
-    /**
-     * Sets address
-     *
-     * @param value Value to set
-     */
     public void setAddress(String value) {
         this.address = value;
     }
 
-    /**
-     * Retrieves address
-     */
     public String getAddress() {
         return this.address;
     }
 
-    /**
-     * Sets exchangePattern
-     *
-     * @param value Value to set
-     */
     public void setExchangePattern(ZeroMQTransport.ExchangePattern value) {
         this.exchangePattern = value;
     }
 
-    /**
-     * Retrieves exchangePattern
-     */
     public ZeroMQTransport.ExchangePattern getExchangePattern() {
         return this.exchangePattern;
     }
 
-    /**
-     * Sets filter
-     *
-     * @param value Value to set
-     */
     public void setFilter(String value) {
         this.filter = value;
     }
 
-    /**
-     * Retrieves filter
-     */
     public String getFilter() {
         return this.filter;
     }
@@ -143,20 +98,10 @@ public class ZeroMQTransportConnectionManager
         this.multipart = multipart;
     }
 
-    /**
-     * Sets flow construct
-     *
-     * @param flowConstruct Flow construct to set
-     */
     public void setFlowConstruct(FlowConstruct flowConstruct) {
         this.flowConstruct = flowConstruct;
     }
 
-    /**
-     * Set the Mule context
-     *
-     * @param context Mule context to set
-     */
     public void setMuleContext(MuleContext context) {
         this.muleContext = context;
     }
@@ -187,9 +132,6 @@ public class ZeroMQTransportConnectionManager
         connectionPool.invalidateObject(key, connection);
     }
 
-    /**
-     * Returns true if this module implements such capability
-     */
     public boolean isCapableOf(Capability capability) {
         if (capability == Capability.LIFECYCLE_CAPABLE) {
             return true;
@@ -280,31 +222,12 @@ public class ZeroMQTransportConnectionManager
 
     }
 
-
-    /**
-     * A tuple of connection parameters
-     */
     public static class ConnectionKey {
 
-        /**
-         *
-         */
         private ZeroMQTransport.ExchangePattern exchangePattern;
-        /**
-         *
-         */
         private ZeroMQTransport.SocketOperation socketOperation;
-        /**
-         *
-         */
         private String address;
-        /**
-         *
-         */
         private String filter;
-        /**
-         *
-         */
         private boolean isInbound;
 
         public ConnectionKey(ZeroMQTransport.ExchangePattern exchangePattern, ZeroMQTransport.SocketOperation socketOperation, String address, String filter, boolean isInbound) {
@@ -315,21 +238,10 @@ public class ZeroMQTransportConnectionManager
             this.setInbound(isInbound);
         }
 
-        public ConnectionKey() {
-        }
-
-        /**
-         * Sets socketOperation
-         *
-         * @param value Value to set
-         */
         public void setSocketOperation(ZeroMQTransport.SocketOperation value) {
             this.socketOperation = value;
         }
 
-        /**
-         * Retrieves socketOperation
-         */
         public ZeroMQTransport.SocketOperation getSocketOperation() {
             return this.socketOperation;
         }
@@ -342,50 +254,26 @@ public class ZeroMQTransportConnectionManager
             this.isInbound = isInbound;
         }
 
-        /**
-         * Sets address
-         *
-         * @param value Value to set
-         */
         public void setAddress(String value) {
             this.address = value;
         }
 
-        /**
-         * Retrieves address
-         */
         public String getAddress() {
             return this.address;
         }
 
-        /**
-         * Sets exchangePattern
-         *
-         * @param value Value to set
-         */
         public void setExchangePattern(ZeroMQTransport.ExchangePattern value) {
             this.exchangePattern = value;
         }
 
-        /**
-         * Retrieves exchangePattern
-         */
         public ZeroMQTransport.ExchangePattern getExchangePattern() {
             return this.exchangePattern;
         }
 
-        /**
-         * Sets filter
-         *
-         * @param value Value to set
-         */
         public void setFilter(String value) {
             this.filter = value;
         }
 
-        /**
-         * Retrieves filter
-         */
         public String getFilter() {
             return this.filter;
         }

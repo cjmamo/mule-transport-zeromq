@@ -1,4 +1,21 @@
-
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.mule.transport.sources;
 
 import org.mule.DefaultMuleEvent;
@@ -30,13 +47,8 @@ import org.mule.transport.adapters.ZeroMQTransportLifecycleAdapter;
 import java.util.Map;
 
 
-/**
- * InboundEndpointMessageSource wraps {@link org.mule.transport.ZeroMQTransport#inboundEndpoint(org.mule.transport.ZeroMQTransport.ExchangePattern, org.mule.transport.ZeroMQTransport.SocketOperation, String, String, org.mule.api.callback.SourceCallback)} method in {@link org.mule.transport.ZeroMQTransport } as a message source capable of generating Mule events.  The POJO's method is invoked in its own thread.
- *
- */
 public class InboundEndpointMessageSource
-    implements Runnable, SourceCallback, FlowConstructAware, MuleContextAware, Initialisable, Startable, Stoppable, MessageSource
-{
+        implements Runnable, SourceCallback, FlowConstructAware, MuleContextAware, Initialisable, Startable, Stoppable, MessageSource {
 
     private Object exchangePattern;
     private ZeroMQTransport.ExchangePattern _exchangePatternType;
@@ -58,8 +70,7 @@ public class InboundEndpointMessageSource
     private Thread thread;
 
     public void initialise()
-        throws InitialisationException
-    {
+            throws InitialisationException {
         if (moduleObject == null) {
             try {
                 moduleObject = muleContext.getRegistry().lookupObject(ZeroMQTransportConnectionManager.class);
@@ -116,25 +127,22 @@ public class InboundEndpointMessageSource
     }
 
     public Object process(Object message)
-        throws Exception
-    {
+            throws Exception {
         MuleMessage muleMessage;
         muleMessage = new DefaultMuleMessage(message, muleContext);
         MuleSession muleSession;
         muleSession = new DefaultMuleSession(flowConstruct, muleContext);
         MuleEvent muleEvent;
-        if (transformedExchangePattern.equals(ZeroMQTransport.ExchangePattern.REQUEST_RESPONSE))
-        {
+        if (transformedExchangePattern.equals(ZeroMQTransport.ExchangePattern.REQUEST_RESPONSE)) {
             muleEvent = new DefaultMuleEvent(muleMessage, MessageExchangePattern.REQUEST_RESPONSE, muleSession);
-        }
-        else {
+        } else {
             muleEvent = new DefaultMuleEvent(muleMessage, MessageExchangePattern.ONE_WAY, muleSession);
         }
 
         try {
             MuleEvent responseEvent;
             responseEvent = messageProcessor.process(muleEvent);
-            if ((responseEvent!= null)&&(responseEvent.getMessage()!= null)) {
+            if ((responseEvent != null) && (responseEvent.getMessage() != null)) {
                 return responseEvent.getMessage().getPayload();
             }
         } catch (Exception e) {
@@ -144,8 +152,7 @@ public class InboundEndpointMessageSource
     }
 
     public Object process(Object message, Map<String, Object> properties)
-        throws Exception
-    {
+            throws Exception {
         MuleMessage muleMessage;
         muleMessage = new DefaultMuleMessage(message, properties, null, null, muleContext);
         MuleSession muleSession;
@@ -155,7 +162,7 @@ public class InboundEndpointMessageSource
         try {
             MuleEvent responseEvent;
             responseEvent = messageProcessor.process(muleEvent);
-            if ((responseEvent!= null)&&(responseEvent.getMessage()!= null)) {
+            if ((responseEvent != null) && (responseEvent.getMessage() != null)) {
                 return responseEvent.getMessage().getPayload();
             }
         } catch (Exception e) {
@@ -165,12 +172,11 @@ public class InboundEndpointMessageSource
     }
 
     public Object process()
-        throws Exception
-    {
+            throws Exception {
         try {
             MuleEvent responseEvent;
             responseEvent = messageProcessor.process(RequestContext.getEvent());
-            if ((responseEvent!= null)&&(responseEvent.getMessage()!= null)) {
+            if ((responseEvent != null) && (responseEvent.getMessage() != null)) {
                 return responseEvent.getMessage().getPayload();
             }
         } catch (Exception e) {
@@ -180,8 +186,7 @@ public class InboundEndpointMessageSource
     }
 
     public void start()
-        throws MuleException
-    {
+            throws MuleException {
         if (thread == null) {
             thread = new Thread(this, "Receiving Thread");
         }
@@ -189,8 +194,7 @@ public class InboundEndpointMessageSource
     }
 
     public void stop()
-        throws MuleException
-    {
+            throws MuleException {
         thread.interrupt();
     }
 
@@ -291,7 +295,7 @@ public class InboundEndpointMessageSource
         } catch (Exception e) {
             muleContext.getExceptionListener().handleException(e);
         } finally {
-            if (connection!= null) {
+            if (connection != null) {
                 try {
                     castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(transformedExchangePattern, transformedSocketOperation, transformedAddress, transformedFilter, false), connection);
                 } catch (Exception _x) {

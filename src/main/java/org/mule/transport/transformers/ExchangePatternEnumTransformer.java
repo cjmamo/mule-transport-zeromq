@@ -1,23 +1,12 @@
-
 package org.mule.transport.transformers;
 
-import org.mule.api.MuleContext;
-import org.mule.api.context.MuleContextAware;
 import org.mule.api.transformer.DiscoverableTransformer;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractTransformer;
 import org.mule.transformer.types.DataTypeFactory;
 
-public class ExchangePatternEnumTransformer
-    extends AbstractTransformer
-    implements MuleContextAware, DiscoverableTransformer
-{
+public class ExchangePatternEnumTransformer extends AbstractTransformer implements DiscoverableTransformer {
 
-    /**
-     * Mule Context
-     * 
-     */
-    private MuleContext muleContext;
     private int weighting = DiscoverableTransformer.DEFAULT_PRIORITY_WEIGHTING;
 
     public ExchangePatternEnumTransformer() {
@@ -26,18 +15,8 @@ public class ExchangePatternEnumTransformer
         setName("ExchangePatternEnumTransformer");
     }
 
-    /**
-     * Set the Mule context
-     * 
-     * @param context Mule context to set
-     */
-    public void setMuleContext(MuleContext context) {
-        this.muleContext = context;
-    }
-
     protected Object doTransform(Object src, String encoding)
-        throws TransformerException
-    {
+            throws TransformerException {
         org.mule.transport.ZeroMQTransport.ExchangePattern result = null;
         String transformedSrc = ((String) src).toUpperCase().replace("-", "_");
         result = Enum.valueOf(org.mule.transport.ZeroMQTransport.ExchangePattern.class, transformedSrc);

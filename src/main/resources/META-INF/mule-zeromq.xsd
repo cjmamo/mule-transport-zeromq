@@ -169,30 +169,15 @@
                     </xs:attribute>
                     <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern"
                                   use="optional" type="ExchangePatternEnumType">
-                        <xs:annotation>
-                            <xs:documentation>A password</xs:documentation>
-                        </xs:annotation>
                     </xs:attribute>
                     <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation"
                                   use="optional" type="SocketOperationEnumType">
-                        <xs:annotation>
-                            <xs:documentation>A username</xs:documentation>
-                        </xs:annotation>
                     </xs:attribute>
                     <xs:attribute name="address" use="optional" type="xs:string">
-                        <xs:annotation>
-                            <xs:documentation>A password</xs:documentation>
-                        </xs:annotation>
                     </xs:attribute>
                     <xs:attribute name="filter" use="optional" type="xs:string">
-                        <xs:annotation>
-                            <xs:documentation>A password</xs:documentation>
-                        </xs:annotation>
                     </xs:attribute>
                     <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
-                        <xs:annotation>
-                            <xs:documentation>A password</xs:documentation>
-                        </xs:annotation>
                     </xs:attribute>
                 </xs:extension>
             </xs:complexContent>
@@ -201,10 +186,6 @@
     <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core"
                 name="outbound-endpoint" substitutionGroup="mule:abstract-message-processor"
                 type="OutboundEndpointType">
-        <xs:annotation>
-            <xs:documentation>Custom processor
-                &lt;p/&gt;</xs:documentation>
-        </xs:annotation>
     </xs:element>
     <xs:complexType name="OutboundEndpointType">
         <xs:complexContent>
@@ -223,39 +204,21 @@
                 </xs:attribute>
                 <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="optional"
                               type="ExchangePatternEnumType">
-                    <xs:annotation>
-                        <xs:documentation>A password</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="optional"
                               type="SocketOperationEnumType">
-                    <xs:annotation>
-                        <xs:documentation>A username</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="address" use="optional" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>A password</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="filter" use="optional" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>A password</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
-                    <xs:annotation>
-                        <xs:documentation>A password</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
     <xs:element xmlns="http://www.mulesoft.org/schema/mule/zeromq" xmlns:mule="http://www.mulesoft.org/schema/mule/core"
                 name="inbound-endpoint" substitutionGroup="mule:abstract-inbound-endpoint" type="InboundEndpointType">
-        <xs:annotation>
-            <xs:documentation>Custom processor</xs:documentation>
-        </xs:annotation>
     </xs:element>
     <xs:complexType name="InboundEndpointType">
         <xs:complexContent>
@@ -267,30 +230,15 @@
                 </xs:attribute>
                 <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern" use="required"
                               type="ExchangePatternEnumType">
-                    <xs:annotation>
-                        <xs:documentation>Content to be processed</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation" use="required"
                               type="SocketOperationEnumType">
-                    <xs:annotation>
-                        <xs:documentation>Content to be processed</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="address" use="required" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>Content to be processed</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="filter" use="optional" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>Content to be processed</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
                 <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
-                    <xs:annotation>
-                        <xs:documentation>Content to be processed</xs:documentation>
-                    </xs:annotation>
                 </xs:attribute>
             </xs:extension>
         </xs:complexContent>

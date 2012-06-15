@@ -5,8 +5,8 @@
     <groupId>org.mule.transport</groupId>
     <artifactId>mule-transport-zeromq</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>mule-module</packaging>
-    <name>Mule Cloud Connector</name>
+    <packaging>jar</packaging>
+    <name>Mule ZeroMQ Transport</name>
 
     <properties>
         <mule.version>3.2.1</mule.version>
@@ -16,43 +16,14 @@
     </properties>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.mule.tools.devkit</groupId>
-                    <artifactId>mule-devkit-maven-plugin</artifactId>
-                    <version>${mule.devkit.version}</version>
-                    <extensions>true</extensions>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.mule.tools.devkit</groupId>
-                                        <artifactId>mule-devkit-maven-plugin</artifactId>
-                                        <versionRange>[2.0,)</versionRange>
-                                        <goals>
-                                            <goal>attach-test-resources</goal>
-                                            <goal>filter-resources</goal>
-                                            <goal>generate-sources</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Djava.library.path=${jzmq.path}</argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -77,11 +48,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.mule.tools.devkit</groupId>
-                <artifactId>mule-devkit-maven-plugin</artifactId>
-                <version>${mule.devkit.version}</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.1.2</version>
@@ -94,58 +60,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <excludePackageNames>org.mule.tooling.ui.contribution:*</excludePackageNames>
-                    <docletArtifact>
-                        <groupId>org.mule.tools.devkit</groupId>
-                        <artifactId>mule-devkit-doclet</artifactId>
-                        <version>3.1.1-SNAPSHOT</version>
-                    </docletArtifact>
-                    <doclet>org.mule.devkit.doclet.Doclava</doclet>
-                    <bootclasspath>${sun.boot.class.path}</bootclasspath>
-                    <additionalparam>
-                        -quiet
-                        -federate JDK http://download.oracle.com/javase/6/docs/api/index.html?
-                        -federationxml JDK http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
-                        -hdf project.artifactId "${project.artifactId}"
-                        -hdf project.groupId "${project.groupId}"
-                        -hdf project.version "${project.version}"
-                        -hdf project.name "${project.name}"
-                        -hdf project.repo.name "${project.distributionManagement.repository.name}"
-                        -hdf project.repo.id "${project.distributionManagement.repository.id}"
-                        -hdf project.repo.url "${project.distributionManagement.repository.url}"
-                        -hdf project.snapshotRepo.name "${project.distributionManagement.snapshotRepository.name}"
-                        -hdf project.snapshotRepo.id "${project.distributionManagement.snapshotRepository.id}"
-                        -hdf project.snapshotRepo.url "${project.distributionManagement.snapshotRepository.url}"
-                        -d ${project.build.directory}/apidocs
-                    </additionalparam>
-                    <useStandardDocletOptions>false</useStandardDocletOptions>
-                    <additionalJOption>-J-Xmx1024m</additionalJOption>
-                </configuration>
-            </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/test/resources</directory>
-            </resource>
-        </resources>
     </build>
 
     <dependencies>
@@ -153,10 +68,10 @@
             <groupId>org.zeromq</groupId>
             <artifactId>zmq</artifactId>
             <version>2.2.0</version>
-            <systemPath>/Users/claudemamo/playground/mule-transport-zeromq/lib/zmq.jar</systemPath>
+            <systemPath>${basedir}/lib/zmq.jar</systemPath>
             <scope>system</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.mule</groupId>
             <artifactId>mule-core</artifactId>
             <version>${mule.version}</version>
@@ -171,6 +86,7 @@
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-scripting</artifactId>
             <version>${mule.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mule.tools.devkit</groupId>
@@ -178,33 +94,9 @@
             <version>${mule.devkit.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>eclipse-workbench</artifactId>
-            <version>3.6.1.M20100826-1330</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>eclipse-runtime</artifactId>
-            <version>3.6.0.v20100505</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>core</artifactId>
-            <version>4.3.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
