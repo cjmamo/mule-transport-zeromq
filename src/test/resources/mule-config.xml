@@ -15,7 +15,7 @@
     <flow name="MultiPartMessageOnOutboundFlow">
         <vm:inbound-endpoint path="multipartmessage.onoutbound"/>
         <zeromq:outbound-endpoint address="tcp://*:${multipartmessage.onoutbound.flow.port}" multipart="true" socket-operation="bind"
-                                  exchange-pattern="one-way"/>
+                                  exchange-pattern="push"/>
     </flow>
 
     <flow name="RequestResponseOnOutboundBindFlow">
@@ -61,7 +61,7 @@
 
     <flow name="MultiPartMessageOnInboundFlow">
         <zeromq:inbound-endpoint address="tcp://*:${multipartmessage.oninbound.flow.port}"
-                                 socket-operation="bind" exchange-pattern="one-way"/>
+                                 socket-operation="bind" exchange-pattern="pull"/>
         <vm:outbound-endpoint path="multipartmessage.oninbound"/>
     </flow>
 

@@ -58,13 +58,13 @@ public class ZeroMQTransport {
 
             switch (exchangePattern) {
                 case REQUEST_RESPONSE:
-                    zmqSocket = requestResponseOutbound(socketOperation, address);
+                    zmqSocket = requestResponseOnOutbound(socketOperation, address);
                     break;
                 case PUBLISH:
                     zmqSocket = publish(socketOperation, address);
                     break;
                 case ONE_WAY:
-                    zmqSocket = requestResponseOutbound(socketOperation, address);
+                    zmqSocket = push(socketOperation, address);
                     break;
                 case SUBSCRIBE:
                     zmqSocket = subscribe(socketOperation, address, filter);
@@ -137,28 +137,34 @@ public class ZeroMQTransport {
     }
 
     public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, Boolean multipart, SourceCallback callback) throws Exception {
-        Object message;
+        ZMQ.Poller poller = zmqContext.poller(1);
 
         switch (exchangePattern) {
 
             case REQUEST_RESPONSE:
-                zmqSocket = requestResponseInbound(socketOperation, address);
-                message = receive(zmqSocket);
-                Object response = callback.process(message);
-                send(zmqSocket, response, multipart);
-                break;
+                zmqSocket = requestResponseOnInbound(socketOperation, address);
+                poller.register(zmqSocket, ZMQ.Poller.POLLIN);
+                while (true) {
+                    poller.poll();
+                    Object response = callback.process(receive(zmqSocket));
+                    send(zmqSocket, response, multipart);
+                }
 
             case ONE_WAY:
-                zmqSocket = requestResponseInbound(socketOperation, address);
-                message = receive(zmqSocket);
-                callback.process(message);
-                break;
+                zmqSocket = pull(socketOperation, address);
+                poller.register(zmqSocket, ZMQ.Poller.POLLIN);
+                while (true) {
+                    poller.poll();
+                    callback.process(receive(zmqSocket));
+                }
 
             case SUBSCRIBE:
                 zmqSocket = subscribe(socketOperation, address, filter);
-                message = receive(zmqSocket);
-                callback.process(message);
-                break;
+                poller.register(zmqSocket, ZMQ.Poller.POLLIN);
+                while (true) {
+                    poller.poll();
+                    callback.process(receive(zmqSocket));
+                }
 
             case PUBLISH:
                 throw new UnsupportedOperationException();
@@ -168,9 +174,11 @@ public class ZeroMQTransport {
 
             case PULL:
                 zmqSocket = pull(socketOperation, address);
-                message = receive(zmqSocket);
-                callback.process(message);
-                break;
+                poller.register(zmqSocket, ZMQ.Poller.POLLIN);
+                while (true) {
+                    poller.poll();
+                    callback.process(receive(zmqSocket));
+                }
 
             default:
                 throw new UnsupportedOperationException();
@@ -243,14 +251,14 @@ public class ZeroMQTransport {
         return zmqSocket;
     }
 
-    private ZMQ.Socket requestResponseInbound(SocketOperation socketOperation, String address) {
+    private ZMQ.Socket requestResponseOnInbound(SocketOperation socketOperation, String address) {
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
         prepare(zmqSocket, socketOperation, address);
 
         return zmqSocket;
     }
 
-    private ZMQ.Socket requestResponseOutbound(SocketOperation socketOperation, String address) {
+    private ZMQ.Socket requestResponseOnOutbound(SocketOperation socketOperation, String address) {
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
         prepare(zmqSocket, socketOperation, address);
 
