@@ -142,7 +142,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
 
         client.dispatch("vm://multipartmessage.onoutbound", new DefaultMuleMessage(messageParts, muleContext));
 
-        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REP);
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PULL);
         zmqSocket.setReceiveTimeOut(RECEIVE_TIMEOUT);
         zmqSocket.connect("tcp://localhost:" + multiPartMessageOnOutboundFlowPort.getNumber());
 
@@ -163,7 +163,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     public void testMultiPartMessageOnInbound() throws Exception {
         MuleClient client = new MuleClient(muleContext);
 
-        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.REQ);
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
         zmqSocket.connect("tcp://localhost:" + multiPartMessageOnInboundFlowPort.getNumber());
         zmqSocket.send("The quick brown fox ".getBytes(), ZMQ.SNDMORE);
         zmqSocket.send("jumps over the lazy dog".getBytes(), 0);
