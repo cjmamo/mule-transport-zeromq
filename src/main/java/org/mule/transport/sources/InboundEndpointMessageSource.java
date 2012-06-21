@@ -47,8 +47,7 @@ import org.mule.transport.adapters.ZeroMQTransportLifecycleAdapter;
 import java.util.Map;
 
 
-public class InboundEndpointMessageSource
-        implements Runnable, SourceCallback, FlowConstructAware, MuleContextAware, Initialisable, Startable, Stoppable, MessageSource {
+public class InboundEndpointMessageSource implements Runnable, SourceCallback, FlowConstructAware, MuleContextAware, Initialisable, Startable, Stoppable, MessageSource {
 
     private Object exchangePattern;
     private ZeroMQTransport.ExchangePattern _exchangePatternType;
@@ -151,8 +150,7 @@ public class InboundEndpointMessageSource
         return null;
     }
 
-    public Object process(Object message, Map<String, Object> properties)
-            throws Exception {
+    public Object process(Object message, Map<String, Object> properties) throws Exception {
         MuleMessage muleMessage;
         muleMessage = new DefaultMuleMessage(message, properties, null, null, muleContext);
         MuleSession muleSession;
@@ -193,8 +191,7 @@ public class InboundEndpointMessageSource
         thread.start();
     }
 
-    public void stop()
-            throws MuleException {
+    public void stop() throws MuleException {
         thread.interrupt();
     }
 
@@ -205,6 +202,7 @@ public class InboundEndpointMessageSource
         String transformedAddress = null;
         String transformedFilter = null;
         Boolean transformedMultipart = null;
+
         try {
             if (moduleObject instanceof String) {
                 castedModuleObject = ((ZeroMQTransportConnectionManager) muleContext.getRegistry().lookupObject(((String) moduleObject)));
@@ -285,7 +283,8 @@ public class InboundEndpointMessageSource
                 }
             }
 
-            connection = castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(transformedExchangePattern, transformedSocketOperation, transformedAddress, transformedFilter, true));
+            connection = castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(transformedExchangePattern, transformedSocketOperation, transformedAddress, transformedFilter, true, transformedMultipart));
+
             if (connection == null) {
                 throw new MessagingException(CoreMessages.failedToCreate("inboundEndpoint"), ((MuleEvent) null), new RuntimeException("Cannot create connection"));
             }
@@ -297,7 +296,7 @@ public class InboundEndpointMessageSource
         } finally {
             if (connection != null) {
                 try {
-                    castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(transformedExchangePattern, transformedSocketOperation, transformedAddress, transformedFilter, false), connection);
+                    castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(transformedExchangePattern, transformedSocketOperation, transformedAddress, transformedFilter, false, transformedMultipart), connection);
                 } catch (Exception _x) {
                 }
             }

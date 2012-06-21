@@ -144,7 +144,7 @@
         </xs:attribute>
     </xs:complexType>
     <xs:element xmlns:devkit="http://www.mulesoft.org/schema/mule/devkit"
-                xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="config"
+                xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="connector"
                 substitutionGroup="mule:abstract-extension"
                 devkit:javaClass="org.mule.transport.adapters.ZeroMQTransportConnectionManager">
         <xs:complexType>
@@ -154,6 +154,13 @@
                         <xs:documentation>ZeroMQ Transport</xs:documentation>
                     </xs:annotation>
                     <xs:sequence>
+                        <xs:element name="receiver-threading-profile" type="mule:threadingProfileType" minOccurs="0">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    The threading profile to use when a connector receives messages.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
                         <xs:element name="connection-pooling-profile" minOccurs="0" type="mule:poolingProfileType">
                             <xs:annotation>
                                 <xs:documentation>Characteristics of the connection pool.</xs:documentation>
@@ -163,7 +170,7 @@
                     <xs:attribute name="name" use="optional" type="xs:string">
                         <xs:annotation>
                             <xs:documentation>Give a name to this configuration so it can be later referenced by
-                                config-ref.
+                                connector-ref.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
@@ -191,7 +198,7 @@
         <xs:complexContent>
             <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core"
                           base="mule:abstractMessageProcessorType">
-                <xs:attribute name="config-ref" use="optional" type="xs:string">
+                <xs:attribute name="connector-ref" use="optional" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
                     </xs:annotation>
@@ -223,7 +230,7 @@
     <xs:complexType name="InboundEndpointType">
         <xs:complexContent>
             <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractInboundEndpointType">
-                <xs:attribute name="config-ref" use="optional" type="xs:string">
+                <xs:attribute name="connector-ref" use="optional" type="xs:string">
                     <xs:annotation>
                         <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
                     </xs:annotation>

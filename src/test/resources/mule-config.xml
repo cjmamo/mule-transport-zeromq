@@ -10,11 +10,10 @@
         http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
         http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/1.0/mule-zeromq.xsd">
 
-    <zeromq:config/>
-
     <flow name="MultiPartMessageOnOutboundFlow">
         <vm:inbound-endpoint path="multipartmessage.onoutbound"/>
-        <zeromq:outbound-endpoint address="tcp://*:${multipartmessage.onoutbound.flow.port}" multipart="true" socket-operation="bind"
+        <zeromq:outbound-endpoint address="tcp://*:${multipartmessage.onoutbound.flow.port}" multipart="true"
+                                  socket-operation="bind"
                                   exchange-pattern="push"/>
     </flow>
 

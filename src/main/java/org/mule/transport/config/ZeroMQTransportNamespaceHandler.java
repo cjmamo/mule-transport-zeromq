@@ -18,12 +18,18 @@
  */
 package org.mule.transport.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.mule.api.config.MuleProperties;
+import org.mule.config.spring.handlers.AbstractMuleNamespaceHandler;
+import org.mule.config.spring.parsers.generic.MuleOrphanDefinitionParser;
+import org.mule.config.spring.parsers.specific.ThreadingProfileDefinitionParser;
+import org.mule.transport.adapters.ZeroMQTransportConnectionManager;
 
-public class ZeroMQTransportNamespaceHandler extends NamespaceHandlerSupport
+public class ZeroMQTransportNamespaceHandler extends AbstractMuleNamespaceHandler
 {
     public void init() {
-        registerBeanDefinitionParser("config", new ZeroMQTransportConfigDefinitionParser());
+        registerBeanDefinitionParser("connector", new MuleOrphanDefinitionParser(ZeroMQTransportConnectionManager.class, true));
+        registerBeanDefinitionParser("receiver-threading-profile", new ThreadingProfileDefinitionParser("receiverThreadingProfile", MuleProperties.OBJECT_DEFAULT_MESSAGE_RECEIVER_THREADING_PROFILE));
+        registerBeanDefinitionParser("connection-pooling-profile", new PoolingProfileDefinitionParser());
         registerBeanDefinitionParser("outbound-endpoint", new OutboundEndpointDefinitionParser());
         registerBeanDefinitionParser("inbound-endpoint", new InboundEndpointDefinitionParser());
     }

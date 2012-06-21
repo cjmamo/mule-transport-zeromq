@@ -24,7 +24,7 @@ import org.mule.api.Capabilities;
 import org.mule.api.Capability;
 import org.mule.api.ConnectionManager;
 import org.mule.api.MuleContext;
-import org.mule.api.construct.FlowConstruct;
+import org.mule.api.config.ThreadingProfile;
 import org.mule.api.context.MuleContextAware;
 import org.mule.api.lifecycle.Disposable;
 import org.mule.api.lifecycle.Initialisable;
@@ -46,9 +46,26 @@ public class ZeroMQTransportConnectionManager
     private Boolean multipart;
     private static Logger logger = LoggerFactory.getLogger(ZeroMQTransportConnectionManager.class);
     private MuleContext muleContext;
-    private FlowConstruct flowConstruct;
     private GenericKeyedObjectPool connectionPool;
     protected PoolingProfile connectionPoolingProfile;
+    private ThreadingProfile receiverThreadingProfile;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setReceiverThreadingProfile(ThreadingProfile receiverThreadingProfile) {
+        this.receiverThreadingProfile = receiverThreadingProfile;
+    }
+
+    public ThreadingProfile getReceiverThreadingProfile() {
+        return receiverThreadingProfile;
+    }
 
     public void setConnectionPoolingProfile(PoolingProfile value) {
         this.connectionPoolingProfile = value;
@@ -98,10 +115,6 @@ public class ZeroMQTransportConnectionManager
         this.multipart = multipart;
     }
 
-    public void setFlowConstruct(FlowConstruct flowConstruct) {
-        this.flowConstruct = flowConstruct;
-    }
-
     public void setMuleContext(MuleContext context) {
         this.muleContext = context;
     }
@@ -142,7 +155,7 @@ public class ZeroMQTransportConnectionManager
         return false;
     }
 
-    private static class ConnectionFactory
+    private class ConnectionFactory
             implements KeyedPoolableObjectFactory {
 
         private ZeroMQTransportConnectionManager connectionManager;
@@ -159,6 +172,7 @@ public class ZeroMQTransportConnectionManager
             ZeroMQTransportLifecycleAdapter connector = new ZeroMQTransportLifecycleAdapter();
 
             connector.setMuleContext(connectionManager.muleContext);
+            connector.setReceiverThreadingProfile(receiverThreadingProfile);
             connector.initialise();
             connector.start();
 
@@ -173,18 +187,14 @@ public class ZeroMQTransportConnectionManager
             if (!(obj instanceof ZeroMQTransportLifecycleAdapter)) {
                 throw new RuntimeException("Invalid connector type");
             }
-            try {
-                ((ZeroMQTransportLifecycleAdapter) obj).disconnect();
-            } catch (Exception e) {
-                throw e;
-            } finally {
-                if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Stoppable) {
-                    ((ZeroMQTransportLifecycleAdapter) obj).stop();
-                }
-                if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Disposable) {
-                    ((ZeroMQTransportLifecycleAdapter) obj).dispose();
-                }
+
+            if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Stoppable) {
+                ((ZeroMQTransportLifecycleAdapter) obj).stop();
             }
+            if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Disposable) {
+                ((ZeroMQTransportLifecycleAdapter) obj).dispose();
+            }
+
         }
 
         public boolean validateObject(Object key, Object obj) {
@@ -209,7 +219,7 @@ public class ZeroMQTransportConnectionManager
             }
             try {
                 if (!((ZeroMQTransportLifecycleAdapter) obj).isConnected()) {
-                    ((ZeroMQTransportLifecycleAdapter) obj).connect(((ConnectionKey) key).getExchangePattern(), ((ConnectionKey) key).getSocketOperation(), ((ConnectionKey) key).getAddress(), ((ConnectionKey) key).getFilter(), ((ConnectionKey) key).isInbound());
+                    ((ZeroMQTransportLifecycleAdapter) obj).connect(((ConnectionKey) key).getExchangePattern(), ((ConnectionKey) key).getSocketOperation(), ((ConnectionKey) key).getAddress(), ((ConnectionKey) key).getFilter(), ((ConnectionKey) key).isInbound(), ((ConnectionKey) key).isMultipart());
                 }
             } catch (Exception e) {
                 throw e;
@@ -229,13 +239,23 @@ public class ZeroMQTransportConnectionManager
         private String address;
         private String filter;
         private boolean isInbound;
+        private boolean multipart;
 
-        public ConnectionKey(ZeroMQTransport.ExchangePattern exchangePattern, ZeroMQTransport.SocketOperation socketOperation, String address, String filter, boolean isInbound) {
+        public ConnectionKey(ZeroMQTransport.ExchangePattern exchangePattern, ZeroMQTransport.SocketOperation socketOperation, String address, String filter, boolean isInbound, boolean multipart) {
             this.exchangePattern = exchangePattern;
             this.socketOperation = socketOperation;
             this.address = address;
             this.filter = filter;
-            this.setInbound(isInbound);
+            this.isInbound = isInbound;
+            this.multipart = multipart;
+        }
+
+        public boolean isMultipart() {
+            return multipart;
+        }
+
+        public void setMultipart(boolean multipart) {
+            this.multipart = multipart;
         }
 
         public void setSocketOperation(ZeroMQTransport.SocketOperation value) {
