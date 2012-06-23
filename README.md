@@ -1,7 +1,6 @@
 Mule ZeroMQ Transport - User Guide
 ================================
 
-
 Configuration Reference
 -----------------------
 
@@ -42,7 +41,7 @@ Configuration Reference
 
 <table class="confluenceTable">
   <tr>
-    <th style="width:10%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
+    <th style="width:20%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
   </tr>
   <tr>
     <td rowspan="1" class="confluenceTd">exchange-pattern</td><td style="text-align: center" class="confluenceTd"><b>request-response</b> / <b>one-way</b> / <b>pull</b> / <b>push</b>/ <b>subscribe</b> / <b>publish</b></td><td style="text-align: center" class="confluenceTd">yes</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
@@ -73,7 +72,7 @@ Configuration Reference
     </td>
   </tr>
   <tr>
-    <td rowspan="2" class="confluenceTd">filter</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
+    <td rowspan="1" class="confluenceTd">filter</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
       <p>
       The criteria used to filter out messages. Applies only when the exchange-pattern attribute is set to subscribe. If not set, every received message is consumed.
     </p>
