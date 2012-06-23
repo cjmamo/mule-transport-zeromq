@@ -18,14 +18,14 @@ Configuration Reference
       </td>
     </tr>
   <tr>
-    <td rowspan="1" class="confluenceTd">receiver-threading-profile</td><td style="text-align: center" class="confluenceTd">element</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd">The default receiver threading profile set on the Mule Configuration</td><td class="confluenceTd">
+    <td rowspan="1" class="confluenceTd">receiver-threading-profile</td><td style="text-align: center" class="confluenceTd">element</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd">The default receiver threading profile set on the Mule configuration</td><td class="confluenceTd">
       <p>
           The threading properties to use when receiving events from the connector.
         </p>
     </td>
   </tr>
   <tr>
-    <td rowspan="1" class="confluenceTd">connection-pooling-profile</td><td style="text-align: center" class="confluenceTd">element</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd">5672</td><td class="confluenceTd">
+    <td rowspan="1" class="confluenceTd">connection-pooling-profile</td><td style="text-align: center" class="confluenceTd">element</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
       <p>
           Controls how the pool of connections should behave.
         </p>
@@ -41,7 +41,7 @@ Configuration Reference
 
 <table class="confluenceTable">
   <tr>
-    <th style="width:20%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
+    <th style="width:10%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
   </tr>
   <tr>
     <td rowspan="1" class="confluenceTd">exchange-pattern</td><td style="text-align: center" class="confluenceTd"><b>request-response</b> / <b>one-way</b> / <b>pull</b> / <b>push</b>/ <b>subscribe</b> / <b>publish</b></td><td style="text-align: center" class="confluenceTd">yes</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
