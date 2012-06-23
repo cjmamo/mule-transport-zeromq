@@ -1,31 +1,8 @@
 Mule ZeroMQ Transport - User Guide
 ================================
 
-# Usage
-
-## Bean Property Expression Enricher
-
-Enriches a payload Java object property.
-
-### Example
-
-```xml
-<mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      ...
-      xsi:schemaLocation="
-        ...
-        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd">
-
-    <flow name="Enrich">
-        ...
-        <enricher target="#[bean-property:apple.washed]">
-            <vm:outbound-endpoint path="status" exchange-pattern="request-response"/>
-        </enricher>
-        ...
-    </flow>
-    ...
-</mule>
-```
+Configuration Reference
+-----------------------
 
 ### Connector Properties
 
@@ -97,7 +74,7 @@ Enriches a payload Java object property.
   <tr>
     <td rowspan="1" class="confluenceTd">filter</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
       <p>
-      The criteria used to filter out messages. Applies only when the exchange-pattern attribute is set to subscribe. If not set, all messages are consumed.
+      The criteria used to filter out messages. Applies only when the exchange-pattern attribute is set to subscribe. If not set, every received message is consumed.
     </p>
     </td>
   </tr>
@@ -107,7 +84,7 @@ Enriches a payload Java object property.
 Examples
 --------
 
-### Subscribing to a socket
+### Subscribing to a socket on an inbound-endpoint
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -127,7 +104,7 @@ Examples
 </mule>
 ```
 
-### Receiving message from multiple sources
+### Receiving messages from multiple inbound endpoints
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -151,61 +128,43 @@ Examples
 </mule>
 ```
 
-## Exception Message Processor Chain
-
-Invokes the next message processor in the flow. If any of the subsequent messages processors throws an exception, the
-Exception Message Processor Chain picks up the exception, creates an exception message (similar behaviour to the
-classical exception handler) and then applies the chain of nested processors which are configured on it.
-
-### Example
+### Pushing messages
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:ricston="http://www.ricston.com/schema/mule/ricston"
+      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
-        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd
-        http://www.ricston.com/schema/mule/ricston http://www.ricston.com/schema/mule/ricston/3.2/mule-ricston.xsd">
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd">
 
-    <flow name="ExceptionMessageProcessorChain">
+    <flow name="PushFlow">
         ...
-        <ricston:exception-message-processor-chain>
-           <expression-transformer evaluator="groovy" expression="return 'Sad Path'"/>
-        </ricston:exception-message-processor-chain>
+        <zeromq:outbound-endpoint address="tcp://*:8080" socket-operation="bind"
+                                  exchange-pattern="one-way"/>
         ...
     </flow>
     ...
 </mule>
 ```
 
-## Transaction Aware Object Store
-
-An object store which can join an XA transaction. This could be used, for example, to make the idempotent message filter
-participate in transactions.
-
-### Example
+### Sending messages as multi-part messages
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
-        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd">
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd">
 
-    <jbossts:transaction-manager/>
-
-    <flow name="TransactionAwareObjectStore">
-        <vm:inbound-endpoint path="in" exchange-pattern="one-way">
-            <xa-transaction action="BEGIN_OR_JOIN"/>
-        </vm:inbound-endpoint>
-        <idempotent-message-filter>
-            <custom-object-store class="org.mule.module.ricston.objectstore.TransactionAwareObjectStore"/>
-        </idempotent-message-filter>
-        <test:component appendString=" Received"/>
-        <vm:outbound-endpoint path="out" exchange-pattern="one-way">
-            <xa-transaction action="ALWAYS_JOIN"/>
-        </vm:outbound-endpoint>
+    <flow name="MultiPartMessageOnOutboundFlow">
+        ...
+        <zeromq:outbound-endpoint address="tcp://*:8080" multipart="true"
+                                  socket-operation="bind" exchange-pattern="request-response"/>
+        ...
     </flow>
     ...
 </mule>
