@@ -5,5 +5,4 @@ In addition, the Java VM's native library path must point jzmq's lib folder. Thi
 "java.library.path" property (e.g., -Djava.library.path=/opt/jzmq/lib).
 
 To package the transport, install Maven and from the project's root folder enter the following command:
-
 "mvn package -Djzmq.path=[jzmq path]"
