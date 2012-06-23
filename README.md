@@ -1,5 +1,5 @@
-Mule ZeroMQ Transport - User Guide
-================================
+Mule 3 ZeroMQ Transport for ZeroMQ 2.2 - User Guide
+===================================================
 
 Configuration Reference
 -----------------------
