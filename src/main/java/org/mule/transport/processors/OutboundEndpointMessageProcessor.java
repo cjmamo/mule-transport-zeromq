@@ -523,6 +523,9 @@ public class OutboundEndpointMessageProcessor
                     _messageStringBuilder.append("[filter = ");
                     _messageStringBuilder.append(_transformedFilter);
                     _messageStringBuilder.append("] ");
+                    _messageStringBuilder.append("[multipart = ");
+                    _messageStringBuilder.append(_transformedMultipart);
+                    _messageStringBuilder.append("] ");
                     logger.debug(_messageStringBuilder.toString());
                 }
                 if (_transformedExchangePattern != null && _transformedSocketOperation != null && _transformedAddress != null) {
