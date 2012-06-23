@@ -27,14 +27,14 @@
                                   exchange-pattern="pull"/>
     </flow>
 
-    <flow name="PollFlow">
+    <flow name="MultipleSourcesFlow">
         <composite-source>
-            <zeromq:inbound-endpoint address="tcp://localhost:${poll.subscriber.flow.port}" socket-operation="connect"
+            <zeromq:inbound-endpoint address="tcp://localhost:${multiplesources.subscriber.flow.port}" socket-operation="connect"
                                      exchange-pattern="subscribe"/>
-            <zeromq:inbound-endpoint address="tcp://*:${poll.pull.flow.port}" socket-operation="bind"
+            <zeromq:inbound-endpoint address="tcp://*:${multiplesources.pull.flow.port}" socket-operation="bind"
                                      exchange-pattern="pull"/>
         </composite-source>
-        <vm:outbound-endpoint path="poll"/>
+        <vm:outbound-endpoint path="multiplesources"/>
     </flow>
 
     <flow name="PushBindFlow">

@@ -100,10 +100,10 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     public DynamicPort pushConnectFlowPort = new DynamicPort("push.connect.flow.port");
 
     @Rule
-    public DynamicPort pollSubscriberFlowPort = new DynamicPort("poll.subscriber.flow.port");
+    public DynamicPort multipleSourcesSubscriberFlowPort = new DynamicPort("multiplesources.subscriber.flow.port");
 
     @Rule
-    public DynamicPort pollPullFlowPort = new DynamicPort("poll.pull.flow.port");
+    public DynamicPort multipleSourcesPullFlowPort = new DynamicPort("multiplesources.pull.flow.port");
 
     @Rule
     public DynamicPort multiPartMessageOnInboundFlowPort = new DynamicPort("multipartmessage.oninbound.flow.port");
@@ -181,20 +181,20 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         MuleClient client = new MuleClient(muleContext);
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
-        zmqSocket.bind("tcp://*:" + pollSubscriberFlowPort.getNumber());
+        zmqSocket.bind("tcp://*:" + multipleSourcesSubscriberFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
 
-        MuleMessage subscribeMessage = client.request("vm://poll", RECEIVE_TIMEOUT);
+        MuleMessage subscribeMessage = client.request("vm://multiplesources", RECEIVE_TIMEOUT);
         assertEquals("The quick brown fox", subscribeMessage.getPayloadAsString());
 
         zmqSocket = zmqContext.socket(ZMQ.PUSH);
-        zmqSocket.connect("tcp://localhost:" + pollPullFlowPort.getNumber());
+        zmqSocket.connect("tcp://localhost:" + multipleSourcesPullFlowPort.getNumber());
         zmqSocket.send("jumps over the lazy dog".getBytes(), 0);
         zmqSocket.close();
 
-        MuleMessage pullMessage = client.request("vm://poll", RECEIVE_TIMEOUT);
+        MuleMessage pullMessage = client.request("vm://multiplesources", RECEIVE_TIMEOUT);
         assertEquals("jumps over the lazy dog", pullMessage.getPayloadAsString());
 
     }
