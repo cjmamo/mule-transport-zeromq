@@ -84,7 +84,7 @@ Configuration Reference
 Examples
 --------
 
-### Subscribing to a socket on an inbound-endpoint
+### Subscribing to a socket on an inbound endpoint
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
