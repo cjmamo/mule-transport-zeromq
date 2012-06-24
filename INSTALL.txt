@@ -10,6 +10,6 @@ Installation instructions:
 1. Install Maven and from your console enter the following command in the project's root folder:
    "mvn package -Djzmq.path=[jzmq path]". This will produce a JAR called "mule-transport-zeromq-[version].jar".
 
-2. Add the ZeroMQ transport JAR to Mule's class path. You should also have jzmq's "zmq.jar" in the classpath.
+2. Add the ZeroMQ transport JAR to Mule's class path. You must also add jzmq's "zmq.jar" in the classpath.
 
 3. Point Mule's Java VM native library path to jzmq's lib folder (e.g., -Djava.library.path=/opt/jzmq/lib).
