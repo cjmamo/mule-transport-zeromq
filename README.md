@@ -162,10 +162,32 @@ Examples
 
     <flow name="MultiPartMessageOnOutboundFlow">
         ...
+        <expression-transformer evaluator="groovy" expression="['1st part', '2nd part', '3rd part', '4th part', '5th part']"/>
         <zeromq:outbound-endpoint address="tcp://*:8080" multipart="true"
                                   socket-operation="bind" exchange-pattern="request-response"/>
         ...
     </flow>
+    ...
+</mule>
+```
+
+### Receiving multi-part messages
+
+```xml
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      ...
+      xsi:schemaLocation="
+        ...
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd">
+
+  <flow name="MultipartInboundFlow">
+      <zeromq:inbound-endpoint address="tcp://*:8080" socket-operation="bind"
+                               exchange-pattern="pull"/>
+      <expression-transformer evaluator="groovy" expression="payload[3]"/>
+      ...
+  </flow>
     ...
 </mule>
 ```
