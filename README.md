@@ -1,5 +1,5 @@
-Mule ZeroMQ Transport User Guide
-================================
+Mule ZeroMQ Transport - User Guide
+==================================
 
 Configuration Reference
 -----------------------
