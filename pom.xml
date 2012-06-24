@@ -12,7 +12,6 @@
         <mule.version>3.2.1</mule.version>
         <mule.devkit.version>3.3-RC3</mule.devkit.version>
         <junit.version>4.9</junit.version>
-        <mockito.version>1.8.2</mockito.version>
     </properties>
 
     <build>
@@ -83,15 +82,15 @@
             <version>${mule.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.mule.tools.devkit</groupId>
+            <artifactId>mule-devkit-annotations</artifactId>
+            <version>${mule.devkit.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-scripting</artifactId>
             <version>${mule.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mule.tools.devkit</groupId>
-            <artifactId>mule-devkit-annotations</artifactId>
-            <version>${mule.devkit.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

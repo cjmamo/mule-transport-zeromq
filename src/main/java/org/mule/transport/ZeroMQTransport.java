@@ -31,7 +31,6 @@ import org.mule.util.concurrent.ThreadNameHelper;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQQueue;
 
-import javax.resource.spi.work.Work;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class ZeroMQTransport {
     private final static String DISPATCHER_WORKER_ADDRESS = "inproc://dispatcher";
     private final static String REQUESTOR_WORKER_ADDRESS = "inproc://requestor";
     private final static String OUTBOUND_RECEIVER_WORKER_ADDRESS = "inproc://receivers";
-    private final static int WAIT_SOCKET_BIND = 50;
+    private final static int WAIT_SOCKET_BIND = 10;
 
     private MuleContext muleContext;
     private ZMQ.Context zmqContext;
@@ -75,18 +74,7 @@ public class ZeroMQTransport {
 
             switch (exchangePattern) {
                 case REQUEST_RESPONSE:
-                    RequestorWorker requestor = new RequestorWorker(multipart, address, socketOperation);
-
-                    new Thread(requestor).start();
-
-                    try {
-                        while (!requestor.isStarted()) {
-                            Thread.sleep(WAIT_SOCKET_BIND);
-                        }
-                    } catch (InterruptedException e) {
-                        throw new ConnectionException(null, null, null, e);
-                    }
-
+                    safeStartWorker(new RequestorWorker(multipart, address, socketOperation));
                     break;
 
                 case PUBLISH:
@@ -98,7 +86,7 @@ public class ZeroMQTransport {
                     break;
 
                 case SUBSCRIBE:
-                    startOutboundReceiverWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.SUB, filter));
+                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.SUB, filter));
                     break;
 
                 case PUSH:
@@ -106,7 +94,7 @@ public class ZeroMQTransport {
                     break;
 
                 case PULL:
-                    startOutboundReceiverWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.PULL, null));
+                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.PULL, null));
                     break;
             }
 
@@ -230,11 +218,11 @@ public class ZeroMQTransport {
 
     }
 
-    private void startOutboundReceiverWorker(OutboundReceiverWorker outboundReceiverWorker) throws ConnectionException {
-        new Thread(outboundReceiverWorker).start();
+    private void safeStartWorker(ZeroMQWorker zeroMQWorker) throws ConnectionException {
+        new Thread(zeroMQWorker).start();
 
         try {
-            while (!outboundReceiverWorker.isStarted()) {
+            while (!zeroMQWorker.isStarted()) {
                 Thread.sleep(WAIT_SOCKET_BIND);
             }
         } catch (InterruptedException e) {
@@ -278,7 +266,6 @@ public class ZeroMQTransport {
             List messageParts = (List) payload;
 
             for (int i = 0; i < (messageParts.size() - 1); i++) {
-
                 zmqSocket.send((byte[]) objectToByteArrayTransformer.transform(messageParts.get(i)), ZMQ.SNDMORE);
             }
 
@@ -344,39 +331,32 @@ public class ZeroMQTransport {
         }
     }
 
-    private class InboundWorker implements Work {
+    private class InboundWorker extends ZeroMQWorker {
 
         private SourceCallback callback;
-        private Boolean multipart;
         private Object message;
 
         public InboundWorker(Boolean multipart, SourceCallback callback) {
+            super(multipart, null, null, 0, null);
             this.callback = callback;
-            this.multipart = multipart;
         }
 
         public InboundWorker(Boolean multipart, SourceCallback callback, Object message) {
+            super(multipart, null, null, 0, null);
             this.callback = callback;
-            this.multipart = multipart;
             this.message = message;
         }
 
         @Override
-        public void release() {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
         public void run() {
-            ZMQ.Socket workerSocket = zmqContext.socket(ZMQ.REP);
+            ZMQ.Socket workerSocket = null;
 
             try {
                 if (message != null) {
                     callback.process(message);
                 } else {
-                    workerSocket.connect(INBOUND_RECEIVER_WORKER_ADDRESS);
+                    workerSocket = createSocket(ZMQ.REP, SocketOperation.CONNECT, INBOUND_RECEIVER_WORKER_ADDRESS);
                     Object response = callback.process(ZeroMQTransport.this.receive(workerSocket));
-
                     send(workerSocket, response, multipart);
                 }
             } catch (Exception e) {
@@ -387,27 +367,16 @@ public class ZeroMQTransport {
         }
     }
 
-    private class RequestorWorker implements Runnable {
-
-        private boolean started;
-        private String address;
-        private Boolean multipart;
-        private SocketOperation socketOperation;
+    private class RequestorWorker extends ZeroMQWorker {
 
         public RequestorWorker(Boolean multipart, String address, SocketOperation socketOperation) {
-            this.multipart = multipart;
-            this.socketOperation = socketOperation;
-            this.address = address;
-        }
-
-        public boolean isStarted() {
-            return started;
+            super(multipart, address, socketOperation, ZMQ.REQ, null);
         }
 
         @Override
         public void run() {
             try {
-                ZMQ.Socket outboundEndpoint = createSocket(ZMQ.REQ, socketOperation, address);
+                ZMQ.Socket outboundEndpoint = createSocket(socketType, socketOperation, address);
                 ZMQ.Socket requestor = createSocket(ZMQ.REP, SocketOperation.BIND, REQUESTOR_WORKER_ADDRESS);
                 ZMQ.Poller poller = createPoller(requestor);
                 started = true;
@@ -424,25 +393,10 @@ public class ZeroMQTransport {
         }
     }
 
-    private class OutboundReceiverWorker implements Runnable {
-
-        private boolean started;
-        private String address;
-        private Boolean multipart;
-        private SocketOperation socketOperation;
-        private String filter;
-        private int socketType;
+    private class OutboundReceiverWorker extends ZeroMQWorker {
 
         public OutboundReceiverWorker(Boolean multipart, String address, SocketOperation socketOperation, int socketType, String filter) {
-            this.multipart = multipart;
-            this.socketOperation = socketOperation;
-            this.address = address;
-            this.filter = filter;
-            this.socketType = socketType;
-        }
-
-        public boolean isStarted() {
-            return started;
+            super(multipart, address, socketOperation, socketType, filter);
         }
 
         @Override
@@ -464,18 +418,10 @@ public class ZeroMQTransport {
         }
     }
 
-    private class DispatcherWorker implements Runnable {
-
-        private String address;
-        private Boolean multipart;
-        private SocketOperation socketOperation;
-        private int socketType;
+    private class DispatcherWorker extends ZeroMQWorker {
 
         public DispatcherWorker(Boolean multipart, String address, SocketOperation socketOperation, int socketType) {
-            this.multipart = multipart;
-            this.socketOperation = socketOperation;
-            this.address = address;
-            this.socketType = socketType;
+            super(multipart, address, socketOperation, socketType, null);
         }
 
         @Override
@@ -493,6 +439,5 @@ public class ZeroMQTransport {
                 throw new RuntimeException(e);
             }
         }
-
     }
 }
