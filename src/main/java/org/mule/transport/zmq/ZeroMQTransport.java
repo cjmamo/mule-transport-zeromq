@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport;
+package org.mule.transport.zmq;
 
 import org.mule.api.ConnectionException;
 import org.mule.api.MuleContext;

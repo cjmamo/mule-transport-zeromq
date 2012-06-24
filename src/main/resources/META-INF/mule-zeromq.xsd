@@ -146,7 +146,7 @@
     <xs:element xmlns:devkit="http://www.mulesoft.org/schema/mule/devkit"
                 xmlns:mule="http://www.mulesoft.org/schema/mule/core" name="connector"
                 substitutionGroup="mule:abstract-extension"
-                devkit:javaClass="org.mule.transport.adapters.ZeroMQTransportConnectionManager">
+                devkit:javaClass="org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager">
         <xs:complexType>
             <xs:complexContent>
                 <xs:extension base="mule:abstractExtensionType">

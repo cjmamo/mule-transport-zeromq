@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.sources;
+package org.mule.transport.zmq.sources;
 
 import org.mule.DefaultMuleEvent;
 import org.mule.DefaultMuleMessage;
@@ -40,9 +40,9 @@ import org.mule.config.i18n.CoreMessages;
 import org.mule.config.i18n.MessageFactory;
 import org.mule.session.DefaultMuleSession;
 import org.mule.transformer.types.DataTypeFactory;
-import org.mule.transport.ZeroMQTransport;
-import org.mule.transport.adapters.ZeroMQTransportConnectionManager;
-import org.mule.transport.adapters.ZeroMQTransportLifecycleAdapter;
+import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager;
+import org.mule.transport.zmq.adapters.ZeroMQTransportLifecycleAdapter;
 
 import java.util.Map;
 
@@ -50,9 +50,7 @@ import java.util.Map;
 public class InboundEndpointMessageSource implements Runnable, SourceCallback, FlowConstructAware, MuleContextAware, Initialisable, Startable, Stoppable, MessageSource {
 
     private Object exchangePattern;
-    private ZeroMQTransport.ExchangePattern _exchangePatternType;
     private Object socketOperation;
-    private ZeroMQTransport.SocketOperation _socketOperationType;
     private Object address;
     private Object filter;
     private Object multipart;

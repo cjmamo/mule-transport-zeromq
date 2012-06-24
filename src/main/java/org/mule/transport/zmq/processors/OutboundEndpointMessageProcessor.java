@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.processors;
+package org.mule.transport.zmq.processors;
 
 import org.mule.api.*;
 import org.mule.api.construct.FlowConstruct;
@@ -34,9 +34,9 @@ import org.mule.config.i18n.MessageFactory;
 import org.mule.transformer.TransformerTemplate;
 import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
-import org.mule.transport.ZeroMQTransport;
-import org.mule.transport.adapters.ZeroMQTransportConnectionManager;
-import org.mule.transport.adapters.ZeroMQTransportLifecycleAdapter;
+import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager;
+import org.mule.transport.zmq.adapters.ZeroMQTransportLifecycleAdapter;
 import org.mule.util.TemplateParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

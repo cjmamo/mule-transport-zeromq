@@ -16,39 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.config;
+package org.mule.transport.zmq.config;
 
 import org.apache.commons.lang.StringUtils;
 import org.mule.config.spring.MuleHierarchicalBeanDefinitionParserDelegate;
-import org.mule.transport.processors.OutboundEndpointMessageProcessor;
+import org.mule.config.spring.parsers.generic.ChildDefinitionParser;
+import org.mule.transport.zmq.sources.InboundEndpointMessageSource;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
-import java.util.List;
+public class InboundEndpointDefinitionParser extends ChildDefinitionParser {
 
-public class OutboundEndpointDefinitionParser implements BeanDefinitionParser {
+    public InboundEndpointDefinitionParser() {
+        super("messageSource", InboundEndpointMessageSource.class);
+    }
 
-    public BeanDefinition parse(Element element, ParserContext parserContent) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(OutboundEndpointMessageProcessor.class.getName());
+    public BeanDefinition parseChild(Element element, ParserContext parserContent) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(InboundEndpointMessageSource.class.getName());
         String configRef = element.getAttribute("config-ref");
         if ((configRef != null) && (!StringUtils.isBlank(configRef))) {
             builder.addPropertyValue("moduleObject", configRef);
-        }
-        if ((element.getAttribute("payload-ref") != null) && (!StringUtils.isBlank(element.getAttribute("payload-ref")))) {
-            if (element.getAttribute("payload-ref").startsWith("#")) {
-                builder.addPropertyValue("payload", element.getAttribute("payload-ref"));
-            } else {
-                builder.addPropertyValue("payload", (("#[registry:" + element.getAttribute("payload-ref")) + "]"));
-            }
-        }
-        if ((element.getAttribute("retryMax") != null) && (!StringUtils.isBlank(element.getAttribute("retryMax")))) {
-            builder.addPropertyValue("retryMax", element.getAttribute("retryMax"));
         }
         if (element.hasAttribute("exchange-pattern")) {
             builder.addPropertyValue("exchangePattern", element.getAttribute("exchange-pattern"));
@@ -65,23 +55,16 @@ public class OutboundEndpointDefinitionParser implements BeanDefinitionParser {
         if ((element.getAttribute("multipart") != null) && (!StringUtils.isBlank(element.getAttribute("multipart")))) {
             builder.addPropertyValue("multipart", element.getAttribute("multipart"));
         }
+        if ((element.getAttribute("retryMax") != null) && (!StringUtils.isBlank(element.getAttribute("retryMax")))) {
+            builder.addPropertyValue("retryMax", element.getAttribute("retryMax"));
+        }
+
         BeanDefinition definition = builder.getBeanDefinition();
         definition.setAttribute(MuleHierarchicalBeanDefinitionParserDelegate.MULE_NO_RECURSE, Boolean.TRUE);
         MutablePropertyValues propertyValues = parserContent.getContainingBeanDefinition().getPropertyValues();
-        if (parserContent.getContainingBeanDefinition().getBeanClassName().equals("org.mule.config.spring.factories.PollingMessageSourceFactoryBean")) {
-            propertyValues.addPropertyValue("messageProcessor", definition);
-        } else {
-            if (parserContent.getContainingBeanDefinition().getBeanClassName().equals("org.mule.enricher.MessageEnricher")) {
-                propertyValues.addPropertyValue("enrichmentMessageProcessor", definition);
-            } else {
-                PropertyValue messageProcessors = propertyValues.getPropertyValue("messageProcessors");
-                if ((messageProcessors == null) || (messageProcessors.getValue() == null)) {
-                    propertyValues.addPropertyValue("messageProcessors", new ManagedList());
-                }
-                List listMessageProcessors = ((List) propertyValues.getPropertyValue("messageProcessors").getValue());
-                listMessageProcessors.add(definition);
-            }
-        }
+
+        propertyValues.addPropertyValue("messageSource", definition);
+
         return definition;
     }
 

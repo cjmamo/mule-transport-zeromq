@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.adapters;
+package org.mule.transport.zmq.adapters;
 
 import org.mule.api.MuleException;
 import org.mule.api.lifecycle.*;

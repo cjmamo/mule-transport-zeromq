@@ -16,15 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.config;
+package org.mule.transport.zmq.config;
 
 import org.mule.api.config.MuleProperties;
 import org.mule.config.spring.handlers.AbstractMuleNamespaceHandler;
 import org.mule.config.spring.parsers.generic.MuleOrphanDefinitionParser;
 import org.mule.config.spring.parsers.specific.ThreadingProfileDefinitionParser;
-import org.mule.transport.adapters.ZeroMQTransportConnectionManager;
+import org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager;
 
-public class ZeroMQTransportNamespaceHandler extends AbstractMuleNamespaceHandler
+public class ZeroMQNamespaceHandler extends AbstractMuleNamespaceHandler
 {
     public void init() {
         registerBeanDefinitionParser("connector", new MuleOrphanDefinitionParser(ZeroMQTransportConnectionManager.class, true));

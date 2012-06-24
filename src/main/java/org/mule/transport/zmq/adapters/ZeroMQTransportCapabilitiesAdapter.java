@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.adapters;
+package org.mule.transport.zmq.adapters;
 
 import org.mule.api.Capabilities;
 import org.mule.api.Capability;
-import org.mule.transport.ZeroMQTransport;
+import org.mule.transport.zmq.ZeroMQTransport;
 
 
 public class ZeroMQTransportCapabilitiesAdapter extends ZeroMQTransport implements Capabilities {

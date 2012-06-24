@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.config;
+package org.mule.transport.zmq.config;
 
 import org.mule.config.PoolingProfile;
 import org.mule.config.spring.parsers.specific.ConfigurationChildDefinitionParser;

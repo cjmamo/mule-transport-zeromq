@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.mule.transport.adapters;
+package org.mule.transport.zmq.adapters;
 
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
@@ -30,7 +30,7 @@ import org.mule.api.lifecycle.Disposable;
 import org.mule.api.lifecycle.Initialisable;
 import org.mule.api.lifecycle.Stoppable;
 import org.mule.config.PoolingProfile;
-import org.mule.transport.ZeroMQTransport;
+import org.mule.transport.zmq.ZeroMQTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
