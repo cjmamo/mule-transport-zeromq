@@ -12,5 +12,4 @@ Installation instructions:
 
 2. Add the ZeroMQ transport JAR to Mule's class path.
 
-3. Point Mule's Java VM native library path to jzmq's lib folder
-   (e.g., -Djava.library.path=/opt/jzmq/lib).
+3. Point Mule's Java VM native library path to jzmq's lib folder (e.g., -Djava.library.path=/opt/jzmq/lib).
