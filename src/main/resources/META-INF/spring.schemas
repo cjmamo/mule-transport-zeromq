@@ -1,2 +1,2 @@
-http\://www.mulesoft.org/schema/mule/zeromq/1.0/mule-zeromq.xsd=META-INF/mule-zeromq.xsd
+http\://www.mulesoft.org/schema/mule/zeromq/1.1-SNAPSHOT/mule-zeromq.xsd=META-INF/mule-zeromq.xsd
 http\://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd=META-INF/mule-zeromq.xsd

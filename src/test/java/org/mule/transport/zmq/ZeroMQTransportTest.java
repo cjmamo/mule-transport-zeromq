@@ -177,7 +177,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
     }
 
     @Test
-    public void testPoll() throws Exception {
+    public void testMultipleSources() throws Exception {
         MuleClient client = new MuleClient(muleContext);
 
         ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
