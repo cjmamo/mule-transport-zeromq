@@ -131,4 +131,11 @@
         <test:component/>
     </flow>
 
+    <flow name="IdentityFlow">
+        <zeromq:inbound-endpoint address="tcp://*:${identity.flow.port}"
+                                 socket-operation="bind" exchange-pattern="pull" identity="test"/>
+        <byte-array-to-string-transformer/>
+        <test:component/>
+    </flow>
+
 </mule>

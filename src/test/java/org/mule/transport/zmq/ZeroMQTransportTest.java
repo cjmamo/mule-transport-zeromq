@@ -1,20 +1,17 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+/*
+ * Copyright 2012 Claude Mamo
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package org.mule.transport.zmq;
 
@@ -110,6 +107,9 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
 
     @Rule
     public DynamicPort multiPartMessageOnOutboundFlowPort = new DynamicPort("multipartmessage.onoutbound.flow.port");
+
+    @Rule
+    public DynamicPort identityFlowPort = new DynamicPort("identity.flow.port");
 
     private static ZMQ.Context zmqContext;
 
@@ -305,6 +305,26 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
         assertEquals("The quick brown fox jumps over the lazy dog", new String(puller.getMessage()));
     }
+
+    @Test
+    public void testIdentity() throws Exception {
+        final CountDownLatch messageLatch = new Latch();
+
+        getFunctionalTestComponent("IdentityFlow").setEventCallback(new EventCallback() {
+            @Override
+            public void eventReceived(MuleEventContext context, Object component) throws Exception {
+                assertEquals("The quick brown fox", ((FunctionalTestComponent) component).getLastReceivedMessage());
+                messageLatch.countDown();
+            }
+        });
+
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        zmqSocket.connect("tcp://localhost:" + identityFlowPort.getNumber());
+        zmqSocket.send("The quick brown fox".getBytes(), 0);
+        zmqSocket.close();
+        assertTrue(messageLatch.await(RECEIVE_TIMEOUT, TimeUnit.MILLISECONDS));
+    }
+
 
     @Test
     public void testDynamicEndpoint() throws Exception {

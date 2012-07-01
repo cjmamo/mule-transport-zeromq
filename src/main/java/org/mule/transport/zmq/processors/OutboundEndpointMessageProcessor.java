@@ -1,20 +1,17 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+/*
+ * Copyright 2012 Claude Mamo
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package org.mule.transport.zmq.processors;
 
@@ -57,6 +54,7 @@ public class OutboundEndpointMessageProcessor
     private Object address;
     private Object filter;
     private Object multipart;
+    private Object identity;
     private static Logger logger = LoggerFactory.getLogger(OutboundEndpointMessageProcessor.class);
 
     private Object moduleObject;
@@ -128,6 +126,10 @@ public class OutboundEndpointMessageProcessor
 
     public void setPayload(Object value) {
         this.payload = value;
+    }
+
+    public void setIdentity(Object identity) {
+        this.identity = identity;
     }
 
     public void setSocketOperation(Object value) {
@@ -370,6 +372,7 @@ public class OutboundEndpointMessageProcessor
         ZeroMQTransport.SocketOperation _transformedSocketOperation = null;
         String _transformedAddress = null;
         String _transformedFilter = null;
+        String _transformedIdentity = null;
         Boolean _transformedMultipart = null;
         ZeroMQTransportLifecycleAdapter connection = null;
         try {
@@ -396,6 +399,10 @@ public class OutboundEndpointMessageProcessor
                 _transformedFilter = ((String) evaluateAndTransform(_muleMessage, String.class, null, filter, true));
             }
 
+            if (identity != null) {
+                _transformedIdentity = ((String) evaluateAndTransform(_muleMessage, String.class, null, identity, true));
+            }
+
             if (multipart != null) {
                 _transformedMultipart = ((Boolean) evaluateAndTransform(_muleMessage, Boolean.class, null, multipart, true));
             }
@@ -419,9 +426,12 @@ public class OutboundEndpointMessageProcessor
                 _messageStringBuilder.append("[multipart = ");
                 _messageStringBuilder.append(_transformedMultipart);
                 _messageStringBuilder.append("] ");
+                _messageStringBuilder.append("[identity = ");
+                _messageStringBuilder.append(_transformedIdentity);
+                _messageStringBuilder.append("] ");
                 logger.debug(_messageStringBuilder.toString());
             }
-            connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart));
+            connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart, _transformedIdentity));
             if (connection == null) {
                 throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("Cannot create connection"));
             } else {
@@ -461,7 +471,7 @@ public class OutboundEndpointMessageProcessor
                         _messageStringBuilder.append("].");
                         logger.debug(_messageStringBuilder.toString());
                     }
-                    _castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart), connection);
+                    _castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart, _transformedIdentity), connection);
                 }
             } catch (Exception e) {
                 throw new MessagingException(CoreMessages.failedToInvoke("outboundEndpoint"), event, e);
@@ -485,6 +495,7 @@ public class OutboundEndpointMessageProcessor
             ZeroMQTransport.SocketOperation _transformedSocketOperation = null;
             String _transformedAddress = null;
             String _transformedFilter = null;
+            String _transformedIdentity = null;
             Boolean _transformedMultipart = null;
             ZeroMQTransportLifecycleAdapter connection = null;
             try {
@@ -502,6 +513,10 @@ public class OutboundEndpointMessageProcessor
 
                 if (filter != null) {
                     _transformedFilter = ((String) evaluateAndTransform(null, String.class, null, filter, false));
+                }
+
+                if (identity != null) {
+                    _transformedIdentity = ((String) evaluateAndTransform(null, String.class, null, identity, false));
                 }
 
                 if (multipart != null) {
@@ -526,10 +541,13 @@ public class OutboundEndpointMessageProcessor
                     _messageStringBuilder.append("[multipart = ");
                     _messageStringBuilder.append(_transformedMultipart);
                     _messageStringBuilder.append("] ");
+                    _messageStringBuilder.append("[identity = ");
+                    _messageStringBuilder.append(_transformedIdentity);
+                    _messageStringBuilder.append("] ");
                     logger.debug(_messageStringBuilder.toString());
                 }
                 if (_transformedExchangePattern != null && _transformedSocketOperation != null && _transformedAddress != null) {
-                    connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart));
+                    connection = _castedModuleObject.acquireConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart, _transformedIdentity));
                     if (connection == null) {
                         throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), (MuleEvent) null, new RuntimeException("Cannot create connection"));
                     } else {
@@ -555,7 +573,7 @@ public class OutboundEndpointMessageProcessor
                             _messageStringBuilder.append("].");
                             logger.debug(_messageStringBuilder.toString());
                         }
-                        _castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart), connection);
+                        _castedModuleObject.releaseConnection(new ZeroMQTransportConnectionManager.ConnectionKey(_transformedExchangePattern, _transformedSocketOperation, _transformedAddress, _transformedFilter, false, _transformedMultipart, _transformedIdentity), connection);
                     }
                 } catch (Exception e) {
                     throw new MessagingException(CoreMessages.failedToInvoke("outboundEndpoint"), (MuleEvent) null, e);

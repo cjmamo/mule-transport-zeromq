@@ -1,20 +1,17 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+/*
+ * Copyright 2012 Claude Mamo
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  */
 package org.mule.transport.zmq;
 
@@ -65,7 +62,7 @@ public class ZeroMQTransport {
         this.muleContext = muleContext;
     }
 
-    public void connect(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, boolean isInbound, boolean multipart)
+    public void connect(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, boolean isInbound, boolean multipart, String identity)
             throws ConnectionException {
 
         if (!isInbound) {
@@ -86,7 +83,7 @@ public class ZeroMQTransport {
                     break;
 
                 case SUBSCRIBE:
-                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.SUB, filter));
+                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.SUB, filter, null));
                     break;
 
                 case PUSH:
@@ -94,7 +91,7 @@ public class ZeroMQTransport {
                     break;
 
                 case PULL:
-                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.PULL, null));
+                    safeStartWorker(new OutboundReceiverWorker(multipart, address, socketOperation, ZMQ.PULL, null, identity));
                     break;
             }
 
@@ -174,7 +171,7 @@ public class ZeroMQTransport {
         return message;
     }
 
-    public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, Boolean multipart, SourceCallback callback) throws Exception {
+    public void inboundEndpoint(ExchangePattern exchangePattern, SocketOperation socketOperation, String address, String filter, Boolean multipart, SourceCallback callback, String identity) throws Exception {
         ZMQ.Socket zmqSocket;
 
         switch (exchangePattern) {
@@ -199,7 +196,7 @@ public class ZeroMQTransport {
                 poll(zmqSocket, multipart, callback);
 
             case SUBSCRIBE:
-                zmqSocket = createSocket(ZMQ.SUB, socketOperation, address, filter);
+                zmqSocket = createSocket(ZMQ.SUB, socketOperation, address, filter, null);
                 poll(zmqSocket, multipart, callback);
 
             case PUBLISH:
@@ -209,7 +206,7 @@ public class ZeroMQTransport {
                 throw new UnsupportedOperationException();
 
             case PULL:
-                zmqSocket = createSocket(ZMQ.PULL, socketOperation, address);
+                zmqSocket = createSocket(ZMQ.PULL, socketOperation, address, null, identity);
                 poll(zmqSocket, multipart, callback);
 
             default:
@@ -289,11 +286,15 @@ public class ZeroMQTransport {
     }
 
     private ZMQ.Socket createSocket(int socketType, SocketOperation socketOperation, String address) {
-        return createSocket(socketType, socketOperation, address, null);
+        return createSocket(socketType, socketOperation, address, null, null);
     }
 
-    private ZMQ.Socket createSocket(int socketType, SocketOperation socketOperation, String address, String filter) {
+    private ZMQ.Socket createSocket(int socketType, SocketOperation socketOperation, String address, String filter, String identity) {
         ZMQ.Socket zmqSocket = zmqContext.socket(socketType);
+
+        if (identity != null) {
+            zmqSocket.setIdentity(identity.getBytes());
+        }
 
         if (socketType == ZMQ.PUB) {
             String[] subscribers = address.split(";");
@@ -395,14 +396,14 @@ public class ZeroMQTransport {
 
     private class OutboundReceiverWorker extends ZeroMQWorker {
 
-        public OutboundReceiverWorker(Boolean multipart, String address, SocketOperation socketOperation, int socketType, String filter) {
+        public OutboundReceiverWorker(Boolean multipart, String address, SocketOperation socketOperation, int socketType, String filter, String identity) {
             super(multipart, address, socketOperation, socketType, filter);
         }
 
         @Override
         public void run() {
             try {
-                ZMQ.Socket outboundEndpointSocket = createSocket(socketType, socketOperation, address, filter);
+                ZMQ.Socket outboundEndpointSocket = createSocket(socketType, socketOperation, address, filter, identity);
                 ZMQ.Socket puller = createSocket(ZMQ.PUSH, SocketOperation.BIND, OUTBOUND_RECEIVER_WORKER_ADDRESS);
                 ZMQ.Poller poller = createPoller(outboundEndpointSocket);
                 started = true;

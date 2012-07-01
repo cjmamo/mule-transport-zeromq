@@ -174,18 +174,6 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
-                    <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="exchange-pattern"
-                                  use="optional" type="ExchangePatternEnumType">
-                    </xs:attribute>
-                    <xs:attribute xmlns="http://www.mulesoft.org/schema/mule/zeromq" name="socket-operation"
-                                  use="optional" type="SocketOperationEnumType">
-                    </xs:attribute>
-                    <xs:attribute name="address" use="optional" type="xs:string">
-                    </xs:attribute>
-                    <xs:attribute name="filter" use="optional" type="xs:string">
-                    </xs:attribute>
-                    <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
-                    </xs:attribute>
                 </xs:extension>
             </xs:complexContent>
         </xs:complexType>
@@ -221,6 +209,8 @@
                 </xs:attribute>
                 <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
                 </xs:attribute>
+                <xs:attribute name="identity" use="optional" type="xs:string">
+                </xs:attribute>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -244,6 +234,8 @@
                 <xs:attribute name="address" use="required" type="xs:string">
                 </xs:attribute>
                 <xs:attribute name="filter" use="optional" type="xs:string">
+                </xs:attribute>
+                <xs:attribute name="identity" use="optional" type="xs:string">
                 </xs:attribute>
                 <xs:attribute name="multipart" default="false" use="optional" type="xs:boolean">
                 </xs:attribute>
