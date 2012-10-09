@@ -44,7 +44,7 @@ Configuration Reference
     <th style="width:10%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
   </tr>
   <tr>
-    <td rowspan="1" class="confluenceTd">exchange-pattern</td><td style="text-align: center" class="confluenceTd"><b>request-response</b> / <b>one-way</b> / <b>pull</b> / <b>push</b>/ <b>subscribe</b> / <b>publish</b></td><td style="text-align: center" class="confluenceTd">yes</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
+    <td rowspan="1" class="confluenceTd">exchange-pattern</td><td style="text-align: center" class="confluenceTd"><b>request-response</b> / <b>one-way</b> / <b>pull</b> / <b>push</b> / <b>subscribe</b> / <b>publish</b></td><td style="text-align: center" class="confluenceTd">yes</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
       <p>
       The messaging pattern used by the endpoint.
     </p>
