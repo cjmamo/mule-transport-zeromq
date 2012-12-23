@@ -318,7 +318,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
             }
         });
 
-        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
         zmqSocket.connect("tcp://localhost:" + identityFlowPort.getNumber());
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
@@ -607,7 +607,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
             }
         });
 
-        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
         zmqSocket.connect("tcp://localhost:" + pullOnInboundBindFlowPort.getNumber());
         zmqSocket.send("The quick brown fox".getBytes(), 0);
         zmqSocket.close();
@@ -626,7 +626,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
             }
         });
 
-        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUB);
+        ZMQ.Socket zmqSocket = zmqContext.socket(ZMQ.PUSH);
         zmqSocket.bind("tcp://*:" + pullOnInboundConnectFlowPort.getNumber());
         Thread.sleep(CONNECT_WAIT);
         zmqSocket.send("The quick brown fox".getBytes(), 0);

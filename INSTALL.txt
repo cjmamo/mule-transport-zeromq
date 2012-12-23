@@ -1,7 +1,7 @@
 Runtime requirements:
 
 - Mule 3.2.1
-- ZeroMQ 2.2
+- ZeroMQ 2.2.0 or 3.2.2
 - jzmq 1.0.0 (ZeroMQ Java language binding)
 
 

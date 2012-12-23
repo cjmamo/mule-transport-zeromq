@@ -11,7 +11,7 @@
     <properties>
         <mule.version>3.2.1</mule.version>
         <mule.devkit.version>3.3-RC3</mule.devkit.version>
-        <junit.version>4.9</junit.version>
+        <junit.version>4.10</junit.version>
     </properties>
 
     <build>
