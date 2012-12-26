@@ -125,41 +125,41 @@ public class ZeroMQTransport {
 
         switch (exchangePattern) {
             case REQUEST_RESPONSE:
-                ZMQ.Socket requestor = createSocket(ZMQ.REQ, SocketOperation.CONNECT, REQUESTOR_WORKER_ADDRESS);
+                ZMQ.Socket requestor = new SocketFactory(zmqContext, REQUESTOR_WORKER_ADDRESS, ZMQ.REQ, SocketOperation.CONNECT).createSocket();
                 send(requestor, payload, multipart);
                 message = receive(requestor);
                 requestor.close();
                 break;
 
             case PUBLISH:
-                dispatcher = createSocket(ZMQ.PUSH, SocketOperation.CONNECT, DISPATCHER_WORKER_ADDRESS);
+                dispatcher = new SocketFactory(zmqContext, DISPATCHER_WORKER_ADDRESS, ZMQ.PUSH, SocketOperation.CONNECT).createSocket();
                 send(dispatcher, payload, true);
                 message = payload;
                 dispatcher.close();
                 break;
 
             case ONE_WAY:
-                dispatcher = createSocket(ZMQ.PUSH, SocketOperation.CONNECT, DISPATCHER_WORKER_ADDRESS);
+                dispatcher = new SocketFactory(zmqContext, DISPATCHER_WORKER_ADDRESS, ZMQ.PUSH, SocketOperation.CONNECT).createSocket();
                 send(dispatcher, payload, true);
                 message = payload;
                 dispatcher.close();
                 break;
 
             case SUBSCRIBE:
-                ZMQ.Socket subscriber = createSocket(ZMQ.PULL, SocketOperation.CONNECT, OUTBOUND_RECEIVER_WORKER_ADDRESS);
+                ZMQ.Socket subscriber = new SocketFactory(zmqContext, OUTBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.PULL, SocketOperation.CONNECT).createSocket();
                 message = receive(subscriber);
                 subscriber.close();
                 break;
 
             case PUSH:
-                dispatcher = createSocket(ZMQ.PUSH, SocketOperation.CONNECT, DISPATCHER_WORKER_ADDRESS);
+                dispatcher = new SocketFactory(zmqContext, DISPATCHER_WORKER_ADDRESS, ZMQ.PUSH, SocketOperation.CONNECT).createSocket();
                 send(dispatcher, payload, true);
                 message = payload;
                 dispatcher.close();
                 break;
 
             case PULL:
-                ZMQ.Socket puller = createSocket(ZMQ.PULL, SocketOperation.CONNECT, OUTBOUND_RECEIVER_WORKER_ADDRESS);
+                ZMQ.Socket puller = new SocketFactory(zmqContext, OUTBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.PULL, SocketOperation.CONNECT).createSocket();
                 message = receive(puller);
                 puller.close();
                 break;
@@ -179,8 +179,9 @@ public class ZeroMQTransport {
             case REQUEST_RESPONSE:
 
                 WorkManager receiverWorkManager = initReceiverWorkManager();
-                ZMQ.Socket clients = createSocket(ZMQ.ROUTER, socketOperation, address);
-                ZMQ.Socket workers = createSocket(ZMQ.DEALER, SocketOperation.BIND, INBOUND_RECEIVER_WORKER_ADDRESS);
+
+                ZMQ.Socket clients = new SocketFactory(zmqContext, address, ZMQ.ROUTER, socketOperation).createSocket();
+                ZMQ.Socket workers = new SocketFactory(zmqContext, INBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.DEALER, SocketOperation.BIND).createSocket();
                 ZMQQueue zmqQueue = new ZMQQueue(zmqContext, clients, workers);
 
                 for (int i = 0; i < receiverThreadingProfile.getMaxThreadsActive(); i++) {
@@ -192,11 +193,11 @@ public class ZeroMQTransport {
                 break;
 
             case ONE_WAY:
-                zmqSocket = createSocket(ZMQ.PULL, socketOperation, address);
+                zmqSocket = new SocketFactory(zmqContext, address, ZMQ.PULL, socketOperation).createSocket();
                 poll(zmqSocket, multipart, callback);
 
             case SUBSCRIBE:
-                zmqSocket = createSocket(ZMQ.SUB, socketOperation, address, filter, null);
+                zmqSocket = new SocketFactory(zmqContext, address, ZMQ.SUB, socketOperation).setFilter(filter).createSocket();
                 poll(zmqSocket, multipart, callback);
 
             case PUBLISH:
@@ -206,7 +207,7 @@ public class ZeroMQTransport {
                 throw new UnsupportedOperationException();
 
             case PULL:
-                zmqSocket = createSocket(ZMQ.PULL, socketOperation, address, null, identity);
+                zmqSocket = new SocketFactory(zmqContext, address, ZMQ.PULL, socketOperation).setIdentity(identity).createSocket();
                 poll(zmqSocket, multipart, callback);
 
             default:
@@ -285,51 +286,11 @@ public class ZeroMQTransport {
         }
     }
 
-    private ZMQ.Socket createSocket(int socketType, SocketOperation socketOperation, String address) {
-        return createSocket(socketType, socketOperation, address, null, null);
-    }
-
-    private ZMQ.Socket createSocket(int socketType, SocketOperation socketOperation, String address, String filter, String identity) {
-        ZMQ.Socket zmqSocket = zmqContext.socket(socketType);
-
-        if (identity != null) {
-            zmqSocket.setIdentity(identity.getBytes());
-        }
-
-        if (socketType == ZMQ.PUB) {
-            String[] subscribers = address.split(";");
-
-            for (String subscriber : subscribers) {
-                prepare(zmqSocket, socketOperation, subscriber);
-            }
-        } else {
-            prepare(zmqSocket, socketOperation, address);
-        }
-
-        if (socketType == ZMQ.SUB) {
-            if (filter != null) {
-                zmqSocket.subscribe(filter.getBytes());
-            } else {
-                zmqSocket.subscribe(new byte[]{});
-            }
-        }
-
-        return zmqSocket;
-    }
-
     private ZMQ.Poller createPoller(ZMQ.Socket zmqSocket) {
         ZMQ.Poller poller = zmqContext.poller(1);
         poller.register(zmqSocket);
 
         return poller;
-    }
-
-    private void prepare(ZMQ.Socket zmqSocket, SocketOperation socketOperation, String address) {
-        if (socketOperation.equals(SocketOperation.BIND)) {
-            zmqSocket.bind(address);
-        } else {
-            zmqSocket.connect(address);
-        }
     }
 
     private class InboundWorker extends ZeroMQWorker {
@@ -356,9 +317,11 @@ public class ZeroMQTransport {
                 if (message != null) {
                     callback.process(message);
                 } else {
-                    workerSocket = createSocket(ZMQ.REP, SocketOperation.CONNECT, INBOUND_RECEIVER_WORKER_ADDRESS);
-                    Object response = callback.process(ZeroMQTransport.this.receive(workerSocket));
-                    send(workerSocket, response, multipart);
+                    while (true)  {
+                        workerSocket = new SocketFactory(zmqContext, INBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.REP, SocketOperation.CONNECT).createSocket();
+                        Object response = callback.process(ZeroMQTransport.this.receive(workerSocket));
+                        send(workerSocket, response, multipart);
+                    }
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -377,8 +340,8 @@ public class ZeroMQTransport {
         @Override
         public void run() {
             try {
-                ZMQ.Socket outboundEndpoint = createSocket(socketType, socketOperation, address);
-                ZMQ.Socket requestor = createSocket(ZMQ.REP, SocketOperation.BIND, REQUESTOR_WORKER_ADDRESS);
+                ZMQ.Socket outboundEndpoint = new SocketFactory(zmqContext, address, socketType, socketOperation).createSocket();
+                ZMQ.Socket requestor = new SocketFactory(zmqContext, REQUESTOR_WORKER_ADDRESS, ZMQ.REP, SocketOperation.BIND).createSocket();
                 ZMQ.Poller poller = createPoller(requestor);
                 started = true;
 
@@ -403,8 +366,8 @@ public class ZeroMQTransport {
         @Override
         public void run() {
             try {
-                ZMQ.Socket outboundEndpointSocket = createSocket(socketType, socketOperation, address, filter, identity);
-                ZMQ.Socket puller = createSocket(ZMQ.PUSH, SocketOperation.BIND, OUTBOUND_RECEIVER_WORKER_ADDRESS);
+                ZMQ.Socket outboundEndpointSocket = new SocketFactory(zmqContext, address, socketType, socketOperation).setFilter(filter).setIdentity(identity).createSocket();
+                ZMQ.Socket puller = new SocketFactory(zmqContext, OUTBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.PUSH, SocketOperation.BIND).createSocket();
                 ZMQ.Poller poller = createPoller(outboundEndpointSocket);
                 started = true;
 
@@ -427,8 +390,8 @@ public class ZeroMQTransport {
 
         @Override
         public void run() {
-            ZMQ.Socket source = ZeroMQTransport.this.createSocket(ZMQ.PULL, SocketOperation.BIND, DISPATCHER_WORKER_ADDRESS);
-            ZMQ.Socket sink = ZeroMQTransport.this.createSocket(socketType, socketOperation, address);
+            ZMQ.Socket source = new SocketFactory(zmqContext, DISPATCHER_WORKER_ADDRESS, ZMQ.PULL, SocketOperation.BIND).createSocket();
+            ZMQ.Socket sink = new SocketFactory(zmqContext, address, socketType, socketOperation).createSocket();
             ZMQ.Poller poller = createPoller(source);
             try {
                 while (true) {
