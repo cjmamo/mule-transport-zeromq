@@ -317,8 +317,8 @@ public class ZeroMQTransport {
                 if (message != null) {
                     callback.process(message);
                 } else {
+                    workerSocket = new SocketFactory(zmqContext, INBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.REP, SocketOperation.CONNECT).createSocket();
                     while (true)  {
-                        workerSocket = new SocketFactory(zmqContext, INBOUND_RECEIVER_WORKER_ADDRESS, ZMQ.REP, SocketOperation.CONNECT).createSocket();
                         Object response = callback.process(ZeroMQTransport.this.receive(workerSocket));
                         send(workerSocket, response, multipart);
                     }
