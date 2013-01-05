@@ -72,7 +72,7 @@ Configuration Reference
     </td>
   </tr>
   <tr>
-    <td rowspan="1" class="confluenceTd">multipart</td><td style="text-align: center" class="confluenceTd">boolean</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd">false</td><td class="confluenceTd">
+    <td rowspan="1" class="confluenceTd">multipart</td><td style="text-align: center" class="confluenceTd">boolean</td><td style="text-align: center" class="confluenceTd">yes</td><td style="text-align: center" class="confluenceTd">false</td><td class="confluenceTd">
       <p>
       Whether a java.util.List payload is sent as a multi-part message. If set to true, each element in the list becomes a message part. Applies only to outbound endpoints. On inbound endpoints, multi-part messages are transformed to a java.util.List object where each element is a message part.
       </p>
