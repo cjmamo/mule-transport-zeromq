@@ -174,7 +174,7 @@
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>
-                    <xs:attribute name="io-threads" use="optional" default="1" type="xs:string">
+                    <xs:attribute name="io-threads" use="optional" default="1" type="xs:integer">
                         <xs:annotation>
                             <xs:documentation>Specifies the size of the ØMQ thread pool to handle I/O operations.
                             </xs:documentation>

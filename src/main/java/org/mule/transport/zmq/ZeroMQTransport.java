@@ -55,11 +55,11 @@ public class ZeroMQTransport {
     private Integer ioThreads;
     private Boolean connected = false;
 
-    public int getIoThreads() {
+    public Integer getIoThreads() {
         return ioThreads;
     }
 
-    public void setIoThreads(int ioThreads) {
+    public void setIoThreads(Integer ioThreads) {
         this.ioThreads = ioThreads;
     }
 

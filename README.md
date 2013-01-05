@@ -18,7 +18,7 @@ Configuration Reference
     </td>
   </tr>
   <tr>
-      <td rowspan="1" class="confluenceTd">io-threads</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
+      <td rowspan="1" class="confluenceTd">io-threads</td><td style="text-align: center" class="confluenceTd">integer</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd">1</td><td class="confluenceTd">
           <p>
               Specifies the size of the ØMQ thread pool to handle I/O operations.
           </p>
