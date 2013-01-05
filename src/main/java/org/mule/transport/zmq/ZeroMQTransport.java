@@ -52,7 +52,16 @@ public class ZeroMQTransport {
     private ExchangePattern exchangePattern;
     private Transformer objectToByteArrayTransformer;
     private ThreadingProfile receiverThreadingProfile;
+    private Integer ioThreads;
     private Boolean connected = false;
+
+    public int getIoThreads() {
+        return ioThreads;
+    }
+
+    public void setIoThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
+    }
 
     public void setReceiverThreadingProfile(ThreadingProfile receiverThreadingProfile) {
         this.receiverThreadingProfile = receiverThreadingProfile;
@@ -100,7 +109,7 @@ public class ZeroMQTransport {
     }
 
     public void initialise() throws TransformerException {
-        zmqContext = ZMQ.context(1);
+        zmqContext = ZMQ.context(ioThreads != null ? ioThreads : 1);
         objectToByteArrayTransformer = muleContext.getRegistry().lookupTransformer(DataTypeFactory.create((Object.class)), DataTypeFactory.create((byte[].class)));
     }
 

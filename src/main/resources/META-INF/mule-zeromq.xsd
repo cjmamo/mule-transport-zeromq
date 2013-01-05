@@ -167,10 +167,16 @@
                             </xs:annotation>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attribute name="name" use="optional" type="xs:string">
+                    <xs:attribute name="name" use="required" type="xs:string">
                         <xs:annotation>
                             <xs:documentation>Give a name to this configuration so it can be later referenced by
                                 connector-ref.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="io-threads" use="optional" default="1" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Specifies the size of the ØMQ thread pool to handle I/O operations.
                             </xs:documentation>
                         </xs:annotation>
                     </xs:attribute>

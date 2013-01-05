@@ -47,6 +47,15 @@ public class ZeroMQTransportConnectionManager
     protected PoolingProfile connectionPoolingProfile;
     private ThreadingProfile receiverThreadingProfile;
     private String name;
+    private Integer ioThreads;
+
+    public int getIoThreads() {
+        return ioThreads;
+    }
+
+    public void setIoThreads(int ioThreads) {
+        this.ioThreads = ioThreads;
+    }
 
     public String getName() {
         return name;
@@ -170,6 +179,7 @@ public class ZeroMQTransportConnectionManager
 
             connector.setMuleContext(connectionManager.muleContext);
             connector.setReceiverThreadingProfile(receiverThreadingProfile);
+            connector.setIoThreads(ioThreads);
             connector.initialise();
             connector.start();
 

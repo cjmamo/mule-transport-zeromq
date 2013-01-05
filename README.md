@@ -10,10 +10,17 @@ Configuration Reference
   <tr>
     <th style="width:10%" class="confluenceTh">Name</th><th style="width:10%" class="confluenceTh">Type</th><th style="width:10%" class="confluenceTh">Required</th><th style="width:10%" class="confluenceTh">Default</th><th class="confluenceTh">Description</th>
   </tr>
-   <tr>
-      <td rowspan="1" class="confluenceTd">name</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
+  <tr>
+    <td rowspan="1" class="confluenceTd">name</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
         <p>
             The connector's name. Used to reference a connector from an endpoint.
+        </p>
+    </td>
+  </tr>
+  <tr>
+      <td rowspan="1" class="confluenceTd">io-threads</td><td style="text-align: center" class="confluenceTd">string</td><td style="text-align: center" class="confluenceTd">no</td><td style="text-align: center" class="confluenceTd"></td><td class="confluenceTd">
+          <p>
+              Specifies the size of the ØMQ thread pool to handle I/O operations.
           </p>
       </td>
     </tr>
@@ -88,7 +95,7 @@ Examples
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:zmq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
@@ -96,8 +103,8 @@ Examples
         http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd">
 
     <flow name="SubscribeOnInboundFlow">
-        <zeromq:inbound-endpoint address="tcp://localhost:8080" filter="Foo"
-                                 socket-operation="connect" exchange-pattern="subscribe"/>
+        <zmq:inbound-endpoint address="tcp://localhost:8080" filter="Foo"
+                              socket-operation="connect" exchange-pattern="subscribe"/>
         ...
     </flow>
     ...
@@ -108,7 +115,7 @@ Examples
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:zmq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
@@ -117,10 +124,10 @@ Examples
 
     <flow name="MultipleSourcesFlow">
         <composite-source>
-            <zeromq:inbound-endpoint address="tcp://localhost:8080" socket-operation="connect"
-                                     exchange-pattern="subscribe"/>
-            <zeromq:inbound-endpoint address="tcp://*:8080" socket-operation="bind"
-                                     exchange-pattern="pull"/>
+            <zmq:inbound-endpoint address="tcp://localhost:8080" socket-operation="connect"
+                                  exchange-pattern="subscribe"/>
+            <zmq:inbound-endpoint address="tcp://*:8080" socket-operation="bind"
+                                  exchange-pattern="pull"/>
         </composite-source>
         ...
     </flow>
@@ -132,7 +139,7 @@ Examples
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:zmq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
@@ -141,8 +148,8 @@ Examples
 
     <flow name="PushFlow">
         ...
-        <zeromq:outbound-endpoint address="tcp://*:8080" socket-operation="bind"
-                                  exchange-pattern="one-way"/>
+        <zmq:outbound-endpoint address="tcp://*:8080" socket-operation="bind"
+                               exchange-pattern="one-way"/>
         ...
     </flow>
     ...
@@ -153,7 +160,7 @@ Examples
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:zmq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
@@ -163,8 +170,8 @@ Examples
     <flow name="MultiPartMessageOnOutboundFlow">
         ...
         <expression-transformer evaluator="groovy" expression="['1st part', '2nd part', '3rd part', '4th part', '5th part']"/>
-        <zeromq:outbound-endpoint address="tcp://*:8080" multipart="true"
-                                  socket-operation="bind" exchange-pattern="request-response"/>
+        <zmq:outbound-endpoint address="tcp://*:8080" multipart="true"
+                               socket-operation="bind" exchange-pattern="request-response"/>
         ...
     </flow>
     ...
@@ -175,7 +182,7 @@ Examples
 
 ```xml
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
-      xmlns:zeromq="http://www.mulesoft.org/schema/mule/zeromq"
+      xmlns:zmq="http://www.mulesoft.org/schema/mule/zeromq"
       ...
       xsi:schemaLocation="
         ...
@@ -183,8 +190,8 @@ Examples
         http://www.mulesoft.org/schema/mule/zeromq http://www.mulesoft.org/schema/mule/zeromq/current/mule-zeromq.xsd">
 
   <flow name="MultipartInboundFlow">
-      <zeromq:inbound-endpoint address="tcp://*:8080" socket-operation="bind"
-                               exchange-pattern="pull"/>
+      <zmq:inbound-endpoint address="tcp://*:8080" socket-operation="bind"
+                            exchange-pattern="pull"/>
       <expression-transformer evaluator="groovy" expression="payload[3]"/>
       ...
   </flow>
