@@ -12,6 +12,7 @@
         <mule.version>3.2.1</mule.version>
         <mule.devkit.version>3.3-RC3</mule.devkit.version>
         <junit.version>4.10</junit.version>
+        <jzmq.path>/Users/claudemamo/opt/jzmq/lib</jzmq.path>
     </properties>
 
     <build>
@@ -66,9 +67,8 @@
         <dependency>
             <groupId>org.zeromq</groupId>
             <artifactId>zmq</artifactId>
-            <version>3.2.2</version>
-            <systemPath>${basedir}/lib/zmq-3.2.2.jar</systemPath>
-            <scope>system</scope>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mule</groupId>
@@ -119,6 +119,10 @@
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>zeromq-local-repo</id>
+            <url>file://${project.basedir}/lib</url>
+        </repository>
         <repository>
             <id>mulesoft-releases</id>
             <name>MuleSoft Releases Repository</name>
