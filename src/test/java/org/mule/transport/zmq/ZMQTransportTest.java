@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
-public class ZeroMQTransportTest extends FunctionalTestCase implements EventCallback {
+public class ZMQTransportTest extends FunctionalTestCase implements EventCallback {
 
     private static final int CONNECT_WAIT = 1000;
 
@@ -118,7 +118,7 @@ public class ZeroMQTransportTest extends FunctionalTestCase implements EventCall
         return "mule-config.xml";
     }
 
-    public ZeroMQTransportTest() {
+    public ZMQTransportTest() {
         this.setDisposeContextPerClass(true);
     }
 

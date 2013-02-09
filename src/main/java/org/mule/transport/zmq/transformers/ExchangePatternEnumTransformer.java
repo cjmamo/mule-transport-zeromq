@@ -19,7 +19,7 @@ import org.mule.api.transformer.DiscoverableTransformer;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractTransformer;
 import org.mule.transformer.types.DataTypeFactory;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
 
 public class ExchangePatternEnumTransformer extends AbstractTransformer implements DiscoverableTransformer {
 
@@ -27,15 +27,15 @@ public class ExchangePatternEnumTransformer extends AbstractTransformer implemen
 
     public ExchangePatternEnumTransformer() {
         registerSourceType(DataTypeFactory.create(String.class));
-        setReturnClass(ZeroMQTransport.ExchangePattern.class);
+        setReturnClass(ZMQTransport.ExchangePattern.class);
         setName("ExchangePatternEnumTransformer");
     }
 
     protected Object doTransform(Object src, String encoding)
             throws TransformerException {
-        ZeroMQTransport.ExchangePattern result = null;
+        ZMQTransport.ExchangePattern result = null;
         String transformedSrc = ((String) src).toUpperCase().replace("-", "_");
-        result = Enum.valueOf(ZeroMQTransport.ExchangePattern.class, transformedSrc);
+        result = Enum.valueOf(ZMQTransport.ExchangePattern.class, transformedSrc);
         return result;
     }
 

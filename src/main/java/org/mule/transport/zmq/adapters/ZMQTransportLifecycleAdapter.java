@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class ZeroMQTransportLifecycleAdapter
-        extends ZeroMQTransportCapabilitiesAdapter
+public class ZMQTransportLifecycleAdapter
+        extends ZMQTransportCapabilitiesAdapter
         implements Disposable, Initialisable, Startable, Stoppable {
 
 
@@ -36,7 +36,7 @@ public class ZeroMQTransportLifecycleAdapter
     }
 
     public void initialise() {
-        Logger log = LoggerFactory.getLogger(ZeroMQTransportLifecycleAdapter.class);
+        Logger log = LoggerFactory.getLogger(ZMQTransportLifecycleAdapter.class);
         String runtimeVersion = MuleManifest.getProductVersion();
         if (runtimeVersion.equals("Unknown")) {
             log.warn("Unknown Mule runtime version. This module may not work properly!");

@@ -19,7 +19,7 @@ import org.mule.api.transformer.DiscoverableTransformer;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractTransformer;
 import org.mule.transformer.types.DataTypeFactory;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
 
 public class SocketOperationEnumTransformer extends AbstractTransformer implements DiscoverableTransformer {
 
@@ -27,14 +27,14 @@ public class SocketOperationEnumTransformer extends AbstractTransformer implemen
 
     public SocketOperationEnumTransformer() {
         registerSourceType(DataTypeFactory.create(String.class));
-        setReturnClass(ZeroMQTransport.SocketOperation.class);
+        setReturnClass(ZMQTransport.SocketOperation.class);
         setName("SocketOperationEnumTransformer");
     }
 
     protected Object doTransform(Object src, String encoding) throws TransformerException {
-        ZeroMQTransport.SocketOperation result = null;
+        ZMQTransport.SocketOperation result = null;
         String transformedSrc = ((String) src).toUpperCase().replace("-", "_");
-        result = Enum.valueOf(ZeroMQTransport.SocketOperation.class, transformedSrc);
+        result = Enum.valueOf(ZMQTransport.SocketOperation.class, transformedSrc);
         return result;
     }
 

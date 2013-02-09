@@ -27,17 +27,17 @@ import org.mule.api.lifecycle.Disposable;
 import org.mule.api.lifecycle.Initialisable;
 import org.mule.api.lifecycle.Stoppable;
 import org.mule.config.PoolingProfile;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class ZeroMQTransportConnectionManager
-        implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZeroMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
+        implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
 
 
-    private ZeroMQTransport.ExchangePattern exchangePattern;
-    private ZeroMQTransport.SocketOperation socketOperation;
+    private ZMQTransport.ExchangePattern exchangePattern;
+    private ZMQTransport.SocketOperation socketOperation;
     private String address;
     private String filter;
     private Boolean multipart;
@@ -81,11 +81,11 @@ public class ZeroMQTransportConnectionManager
         return this.connectionPoolingProfile;
     }
 
-    public void setSocketOperation(ZeroMQTransport.SocketOperation value) {
+    public void setSocketOperation(ZMQTransport.SocketOperation value) {
         this.socketOperation = value;
     }
 
-    public ZeroMQTransport.SocketOperation getSocketOperation() {
+    public ZMQTransport.SocketOperation getSocketOperation() {
         return this.socketOperation;
     }
 
@@ -97,11 +97,11 @@ public class ZeroMQTransportConnectionManager
         return this.address;
     }
 
-    public void setExchangePattern(ZeroMQTransport.ExchangePattern value) {
+    public void setExchangePattern(ZMQTransport.ExchangePattern value) {
         this.exchangePattern = value;
     }
 
-    public ZeroMQTransport.ExchangePattern getExchangePattern() {
+    public ZMQTransport.ExchangePattern getExchangePattern() {
         return this.exchangePattern;
     }
 
@@ -136,17 +136,17 @@ public class ZeroMQTransportConnectionManager
         connectionPool = new GenericKeyedObjectPool(new ConnectionFactory(this), config);
     }
 
-    public ZeroMQTransportLifecycleAdapter acquireConnection(ConnectionKey key)
+    public ZMQTransportLifecycleAdapter acquireConnection(ConnectionKey key)
             throws Exception {
-        return ((ZeroMQTransportLifecycleAdapter) connectionPool.borrowObject(key));
+        return ((ZMQTransportLifecycleAdapter) connectionPool.borrowObject(key));
     }
 
-    public void releaseConnection(ConnectionKey key, ZeroMQTransportLifecycleAdapter connection)
+    public void releaseConnection(ConnectionKey key, ZMQTransportLifecycleAdapter connection)
             throws Exception {
         connectionPool.returnObject(key, connection);
     }
 
-    public void destroyConnection(ConnectionKey key, ZeroMQTransportLifecycleAdapter connection)
+    public void destroyConnection(ConnectionKey key, ZMQTransportLifecycleAdapter connection)
             throws Exception {
         connectionPool.invalidateObject(key, connection);
     }
@@ -175,7 +175,7 @@ public class ZeroMQTransportConnectionManager
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
-            ZeroMQTransportLifecycleAdapter connector = new ZeroMQTransportLifecycleAdapter();
+            ZMQTransportLifecycleAdapter connector = new ZMQTransportLifecycleAdapter();
 
             connector.setMuleContext(connectionManager.muleContext);
             connector.setReceiverThreadingProfile(receiverThreadingProfile);
@@ -191,25 +191,25 @@ public class ZeroMQTransportConnectionManager
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
-            if (!(obj instanceof ZeroMQTransportLifecycleAdapter)) {
+            if (!(obj instanceof ZMQTransportLifecycleAdapter)) {
                 throw new RuntimeException("Invalid connector type");
             }
 
-            if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Stoppable) {
-                ((ZeroMQTransportLifecycleAdapter) obj).stop();
+            if (((ZMQTransportLifecycleAdapter) obj) instanceof Stoppable) {
+                ((ZMQTransportLifecycleAdapter) obj).stop();
             }
-            if (((ZeroMQTransportLifecycleAdapter) obj) instanceof Disposable) {
-                ((ZeroMQTransportLifecycleAdapter) obj).dispose();
+            if (((ZMQTransportLifecycleAdapter) obj) instanceof Disposable) {
+                ((ZMQTransportLifecycleAdapter) obj).dispose();
             }
 
         }
 
         public boolean validateObject(Object key, Object obj) {
-            if (!(obj instanceof ZeroMQTransportLifecycleAdapter)) {
+            if (!(obj instanceof ZMQTransportLifecycleAdapter)) {
                 throw new RuntimeException("Invalid connector type");
             }
             try {
-                return ((ZeroMQTransportLifecycleAdapter) obj).isConnected();
+                return ((ZMQTransportLifecycleAdapter) obj).isConnected();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 return false;
@@ -221,12 +221,12 @@ public class ZeroMQTransportConnectionManager
             if (!(key instanceof ConnectionKey)) {
                 throw new RuntimeException("Invalid key type");
             }
-            if (!(obj instanceof ZeroMQTransportLifecycleAdapter)) {
+            if (!(obj instanceof ZMQTransportLifecycleAdapter)) {
                 throw new RuntimeException("Invalid connector type");
             }
             try {
-                if (!((ZeroMQTransportLifecycleAdapter) obj).isConnected()) {
-                    ((ZeroMQTransportLifecycleAdapter) obj).connect(((ConnectionKey) key).getExchangePattern(), ((ConnectionKey) key).getSocketOperation(), ((ConnectionKey) key).getAddress(), ((ConnectionKey) key).getFilter(), ((ConnectionKey) key).isInbound(), ((ConnectionKey) key).isMultipart(), ((ConnectionKey) key).getIdentity());
+                if (!((ZMQTransportLifecycleAdapter) obj).isConnected()) {
+                    ((ZMQTransportLifecycleAdapter) obj).connect(((ConnectionKey) key).getExchangePattern(), ((ConnectionKey) key).getSocketOperation(), ((ConnectionKey) key).getAddress(), ((ConnectionKey) key).getFilter(), ((ConnectionKey) key).isInbound(), ((ConnectionKey) key).isMultipart(), ((ConnectionKey) key).getIdentity());
                 }
             } catch (Exception e) {
                 throw e;
@@ -241,15 +241,15 @@ public class ZeroMQTransportConnectionManager
 
     public static class ConnectionKey {
 
-        private ZeroMQTransport.ExchangePattern exchangePattern;
-        private ZeroMQTransport.SocketOperation socketOperation;
+        private ZMQTransport.ExchangePattern exchangePattern;
+        private ZMQTransport.SocketOperation socketOperation;
         private String address;
         private String filter;
         private String identity;
         private boolean isInbound;
         private boolean multipart;
 
-        public ConnectionKey(ZeroMQTransport.ExchangePattern exchangePattern, ZeroMQTransport.SocketOperation socketOperation, String address, String filter, boolean isInbound, boolean multipart, String identity) {
+        public ConnectionKey(ZMQTransport.ExchangePattern exchangePattern, ZMQTransport.SocketOperation socketOperation, String address, String filter, boolean isInbound, boolean multipart, String identity) {
             this.exchangePattern = exchangePattern;
             this.socketOperation = socketOperation;
             this.address = address;
@@ -275,11 +275,11 @@ public class ZeroMQTransportConnectionManager
             this.multipart = multipart;
         }
 
-        public void setSocketOperation(ZeroMQTransport.SocketOperation value) {
+        public void setSocketOperation(ZMQTransport.SocketOperation value) {
             this.socketOperation = value;
         }
 
-        public ZeroMQTransport.SocketOperation getSocketOperation() {
+        public ZMQTransport.SocketOperation getSocketOperation() {
             return this.socketOperation;
         }
 
@@ -299,11 +299,11 @@ public class ZeroMQTransportConnectionManager
             return this.address;
         }
 
-        public void setExchangePattern(ZeroMQTransport.ExchangePattern value) {
+        public void setExchangePattern(ZMQTransport.ExchangePattern value) {
             this.exchangePattern = value;
         }
 
-        public ZeroMQTransport.ExchangePattern getExchangePattern() {
+        public ZMQTransport.ExchangePattern getExchangePattern() {
             return this.exchangePattern;
         }
 

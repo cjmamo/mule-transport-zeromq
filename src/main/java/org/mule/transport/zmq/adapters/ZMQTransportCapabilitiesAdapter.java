@@ -17,10 +17,10 @@ package org.mule.transport.zmq.adapters;
 
 import org.mule.api.Capabilities;
 import org.mule.api.Capability;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
 
 
-public class ZeroMQTransportCapabilitiesAdapter extends ZeroMQTransport implements Capabilities {
+public class ZMQTransportCapabilitiesAdapter extends ZMQTransport implements Capabilities {
 
 
     public boolean isCapableOf(Capability capability) {

@@ -15,19 +15,21 @@
  */
 package org.mule.transport.zmq;
 
+import org.mule.transport.zmq.helper.ZMQURIConstants;
+
 import javax.resource.spi.work.Work;
 
-public abstract class ZeroMQWorker implements Work {
+public abstract class ZMQWorker implements Work {
 
     protected boolean started;
     protected String address;
     protected Boolean multipart;
-    protected ZeroMQTransport.SocketOperation socketOperation;
+    protected ZMQURIConstants.SocketOperation socketOperation;
     protected String filter;
-    protected int socketType;
+    protected ZMQURIConstants.SocketType socketType;
     protected String identity;
 
-    public ZeroMQWorker(Boolean multipart, String address, ZeroMQTransport.SocketOperation socketOperation, int socketType, String filter) {
+    public ZMQWorker(Boolean multipart, String address, ZMQURIConstants.SocketOperation socketOperation, ZMQURIConstants.SocketType socketType, String filter) {
         this.multipart = multipart;
         this.socketOperation = socketOperation;
         this.address = address;
@@ -35,7 +37,7 @@ public abstract class ZeroMQWorker implements Work {
         this.socketType = socketType;
     };
 
-    public ZeroMQWorker(Boolean multipart, String address, ZeroMQTransport.SocketOperation socketOperation, int socketType, String filter, String identity) {
+    public ZMQWorker(Boolean multipart, String address, ZMQURIConstants.SocketOperation socketOperation, ZMQURIConstants.SocketType socketType, String filter, String identity) {
         this.multipart = multipart;
         this.socketOperation = socketOperation;
         this.address = address;

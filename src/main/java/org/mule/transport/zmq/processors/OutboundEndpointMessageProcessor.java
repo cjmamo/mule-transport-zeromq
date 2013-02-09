@@ -31,9 +31,9 @@ import org.mule.config.i18n.MessageFactory;
 import org.mule.transformer.TransformerTemplate;
 import org.mule.transformer.types.DataTypeFactory;
 import org.mule.transport.NullPayload;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
+import org.mule.transport.zmq.adapters.ZMQTransportLifecycleAdapter;
 import org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager;
-import org.mule.transport.zmq.adapters.ZeroMQTransportLifecycleAdapter;
 import org.mule.util.TemplateParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -368,23 +368,23 @@ public class OutboundEndpointMessageProcessor
         } else {
             _castedModuleObject = ((ZeroMQTransportConnectionManager) moduleObject);
         }
-        ZeroMQTransport.ExchangePattern _transformedExchangePattern = null;
-        ZeroMQTransport.SocketOperation _transformedSocketOperation = null;
+        ZMQTransport.ExchangePattern _transformedExchangePattern = null;
+        ZMQTransport.SocketOperation _transformedSocketOperation = null;
         String _transformedAddress = null;
         String _transformedFilter = null;
         String _transformedIdentity = null;
         Boolean _transformedMultipart = null;
-        ZeroMQTransportLifecycleAdapter connection = null;
+        ZMQTransportLifecycleAdapter connection = null;
         try {
 
             if (exchangePattern != null) {
-                _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, ZeroMQTransport.ExchangePattern.class, null, exchangePattern, true));
+                _transformedExchangePattern = ((ZMQTransport.ExchangePattern) evaluateAndTransform(_muleMessage, ZMQTransport.ExchangePattern.class, null, exchangePattern, true));
             } else {
                 throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("You must provide an exchange-pattern on the outbound-endpoint."));
             }
 
             if (socketOperation != null) {
-                _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, ZeroMQTransport.SocketOperation.class, null, socketOperation, true));
+                _transformedSocketOperation = ((ZMQTransport.SocketOperation) evaluateAndTransform(_muleMessage, ZMQTransport.SocketOperation.class, null, socketOperation, true));
             } else {
                 throw new MessagingException(CoreMessages.failedToCreate("outboundEndpoint"), event, new RuntimeException("You must provide a socket-operation on the outbound-endpoint."));
             }
@@ -491,20 +491,20 @@ public class OutboundEndpointMessageProcessor
             } else {
                 _castedModuleObject = ((ZeroMQTransportConnectionManager) moduleObject);
             }
-            ZeroMQTransport.ExchangePattern _transformedExchangePattern = null;
-            ZeroMQTransport.SocketOperation _transformedSocketOperation = null;
+            ZMQTransport.ExchangePattern _transformedExchangePattern = null;
+            ZMQTransport.SocketOperation _transformedSocketOperation = null;
             String _transformedAddress = null;
             String _transformedFilter = null;
             String _transformedIdentity = null;
             Boolean _transformedMultipart = null;
-            ZeroMQTransportLifecycleAdapter connection = null;
+            ZMQTransportLifecycleAdapter connection = null;
             try {
                 if (exchangePattern != null) {
-                    _transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) evaluateAndTransform(null, ZeroMQTransport.ExchangePattern.class, null, exchangePattern, false));
+                    _transformedExchangePattern = ((ZMQTransport.ExchangePattern) evaluateAndTransform(null, ZMQTransport.ExchangePattern.class, null, exchangePattern, false));
                 }
 
                 if (socketOperation != null) {
-                    _transformedSocketOperation = ((ZeroMQTransport.SocketOperation) evaluateAndTransform(null, ZeroMQTransport.SocketOperation.class, null, socketOperation, false));
+                    _transformedSocketOperation = ((ZMQTransport.SocketOperation) evaluateAndTransform(null, ZMQTransport.SocketOperation.class, null, socketOperation, false));
                 }
 
                 if (address != null) {

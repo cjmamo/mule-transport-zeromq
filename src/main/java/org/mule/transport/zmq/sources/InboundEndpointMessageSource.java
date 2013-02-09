@@ -37,9 +37,9 @@ import org.mule.config.i18n.CoreMessages;
 import org.mule.config.i18n.MessageFactory;
 import org.mule.session.DefaultMuleSession;
 import org.mule.transformer.types.DataTypeFactory;
-import org.mule.transport.zmq.ZeroMQTransport;
+import org.mule.transport.zmq.ZMQTransport;
+import org.mule.transport.zmq.adapters.ZMQTransportLifecycleAdapter;
 import org.mule.transport.zmq.adapters.ZeroMQTransportConnectionManager;
-import org.mule.transport.zmq.adapters.ZeroMQTransportLifecycleAdapter;
 
 import java.util.Map;
 
@@ -52,7 +52,7 @@ public class InboundEndpointMessageSource implements Runnable, SourceCallback, F
     private Object filter;
     private Object multipart;
     private Object identity;
-    private ZeroMQTransport.ExchangePattern transformedExchangePattern;
+    private ZMQTransport.ExchangePattern transformedExchangePattern;
 
     private Object moduleObject;
 
@@ -132,7 +132,7 @@ public class InboundEndpointMessageSource implements Runnable, SourceCallback, F
         MuleSession muleSession;
         muleSession = new DefaultMuleSession(flowConstruct, muleContext);
         MuleEvent muleEvent;
-        if (transformedExchangePattern.equals(ZeroMQTransport.ExchangePattern.REQUEST_RESPONSE)) {
+        if (transformedExchangePattern.equals(ZMQTransport.ExchangePattern.REQUEST_RESPONSE)) {
             muleEvent = new DefaultMuleEvent(muleMessage, MessageExchangePattern.REQUEST_RESPONSE, muleSession);
         } else {
             muleEvent = new DefaultMuleEvent(muleMessage, MessageExchangePattern.ONE_WAY, muleSession);
@@ -197,8 +197,8 @@ public class InboundEndpointMessageSource implements Runnable, SourceCallback, F
 
     public void run() {
         ZeroMQTransportConnectionManager castedModuleObject = null;
-        ZeroMQTransportLifecycleAdapter connection = null;
-        ZeroMQTransport.SocketOperation transformedSocketOperation = null;
+        ZMQTransportLifecycleAdapter connection = null;
+        ZMQTransport.SocketOperation transformedSocketOperation = null;
         String transformedAddress = null;
         String transformedFilter = null;
         String transformedIdentity = null;
@@ -215,30 +215,30 @@ public class InboundEndpointMessageSource implements Runnable, SourceCallback, F
             }
 
             if (exchangePattern != null) {
-                if (!ZeroMQTransport.ExchangePattern.class.isAssignableFrom(exchangePattern.getClass())) {
+                if (!ZMQTransport.ExchangePattern.class.isAssignableFrom(exchangePattern.getClass())) {
                     DataType source;
                     DataType target;
                     source = DataTypeFactory.create(exchangePattern.getClass());
-                    target = DataTypeFactory.create(ZeroMQTransport.ExchangePattern.class);
+                    target = DataTypeFactory.create(ZMQTransport.ExchangePattern.class);
                     Transformer t;
                     t = muleContext.getRegistry().lookupTransformer(source, target);
-                    transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) t.transform(exchangePattern));
+                    transformedExchangePattern = ((ZMQTransport.ExchangePattern) t.transform(exchangePattern));
                 } else {
-                    transformedExchangePattern = ((ZeroMQTransport.ExchangePattern) exchangePattern);
+                    transformedExchangePattern = ((ZMQTransport.ExchangePattern) exchangePattern);
                 }
             }
 
             if (socketOperation != null) {
-                if (!ZeroMQTransport.SocketOperation.class.isAssignableFrom(socketOperation.getClass())) {
+                if (!ZMQTransport.SocketOperation.class.isAssignableFrom(socketOperation.getClass())) {
                     DataType source;
                     DataType target;
                     source = DataTypeFactory.create(socketOperation.getClass());
-                    target = DataTypeFactory.create(ZeroMQTransport.SocketOperation.class);
+                    target = DataTypeFactory.create(ZMQTransport.SocketOperation.class);
                     Transformer t;
                     t = muleContext.getRegistry().lookupTransformer(source, target);
-                    transformedSocketOperation = ((ZeroMQTransport.SocketOperation) t.transform(socketOperation));
+                    transformedSocketOperation = ((ZMQTransport.SocketOperation) t.transform(socketOperation));
                 } else {
-                    transformedSocketOperation = ((ZeroMQTransport.SocketOperation) socketOperation);
+                    transformedSocketOperation = ((ZMQTransport.SocketOperation) socketOperation);
                 }
             }
 
