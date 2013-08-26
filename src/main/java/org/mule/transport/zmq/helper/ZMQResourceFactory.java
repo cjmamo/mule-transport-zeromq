@@ -15,8 +15,8 @@
  */
 package org.mule.transport.zmq.helper;
 
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQQueue;
+import org.jeromq.ZMQ;
+import org.jeromq.ZMQQueue;
 
 public class ZMQResourceFactory {
 
@@ -60,7 +60,7 @@ public class ZMQResourceFactory {
 
     public static ZMQ.Poller createPoller(ZMQ.Socket zmqSocket, ZMQ.Context zmqContext) {
         ZMQ.Poller poller = zmqContext.poller(1);
-        poller.register(zmqSocket);
+        poller.register(zmqSocket, ZMQ.Poller.POLLIN);
 
         return poller;
     }

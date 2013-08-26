@@ -15,6 +15,8 @@
  */
 package org.mule.transport.zmq;
 
+import org.jeromq.ZMQ;
+import org.jeromq.ZMQQueue;
 import org.mule.api.ConnectionException;
 import org.mule.api.MuleContext;
 import org.mule.api.MuleException;
@@ -28,8 +30,6 @@ import org.mule.transport.zmq.helper.ZMQResourceFactory;
 import org.mule.transport.zmq.helper.ZMQSocketConfig;
 import org.mule.transport.zmq.helper.ZMQURIConstants;
 import org.mule.util.concurrent.ThreadNameHelper;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQQueue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -444,8 +444,6 @@ public class ZMQTransport {
 
         @Override
         public void run() {
-
-
 
             try {
 

@@ -15,10 +15,8 @@
  */
 package org.mule.transport.zmq;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.jeromq.ZMQ;
+import org.junit.*;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleEventContext;
@@ -33,7 +31,6 @@ import org.mule.tck.junit4.rule.DynamicPort;
 import org.mule.tck.junit4.rule.FreePortFinder;
 import org.mule.util.ArrayUtils;
 import org.mule.util.concurrent.Latch;
-import org.zeromq.ZMQ;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,69 +46,29 @@ public class ZMQTransportTest extends FunctionalTestCase implements EventCallbac
     private static final int CONNECT_WAIT = 1000;
 
     @Rule
-    public DynamicPort requestResponseOnInboundBindFlowPort = new DynamicPort("requestresponse.oninbound.bind.flow.port");
+    public static DynamicPort requestResponseOnInboundBindFlowPort,
+                              requestResponseOnInboundConnectFlowPort,
+                              subscribeOnInboundNoFilterFlowPort,
+                              subscribeOnInboundFilterFlowPort,
+                              pullOnInboundBindFlowPort,
+                              pullOnInboundConnectFlowPort,
+                              requestResponseOnOutboundBindFlowPort,
+                              subscribeOnOutboundNoFilterFlowPort,
+                              subscribeOnOutboundFilterFlowPort,
+                              requestResponseOnOutboundConnectFlowPort,
+                              publishFlowSubscriber1Port,
+                              publishFlowSubscriber2Port,
+                              pullOnOutboundBindFlowPort,
+                              pushBindFlowPort,
+                              pullOnOutboundConnectFlowPort,
+                              pushConnectFlowPort,
+                              multipleSourcesSubscriberFlowPort,
+                              multipleSourcesPullFlowPort,
+                              multiPartMessageOnInboundFlowPort,
+                              multiPartMessageOnOutboundFlowPort,
+                              identityFlowPort;
 
-    @Rule
-    public DynamicPort requestResponseOnInboundConnectFlowPort = new DynamicPort("requestresponse.oninbound.connect.flow.port");
-
-    @Rule
-    public DynamicPort subscribeOnInboundNoFilterFlowPort = new DynamicPort("subscribe.oninbound.nofilter.flow.port");
-
-    @Rule
-    public DynamicPort subscribeOnInboundFilterFlowPort = new DynamicPort("subscribe.oninbound.filter.flow.port");
-
-    @Rule
-    public DynamicPort pullOnInboundBindFlowPort = new DynamicPort("pull.oninbound.bind.flow.port");
-
-    @Rule
-    public DynamicPort pullOnInboundConnectFlowPort = new DynamicPort("pull.oninbound.connect.flow.port");
-
-    @Rule
-    public DynamicPort requestResponseOnOutboundBindFlowPort = new DynamicPort("requestresponse.onoutbound.bind.flow.port");
-
-    @Rule
-    public DynamicPort subscribeOnOutboundNoFilterFlowPort = new DynamicPort("subscribe.onoutbound.nofilter.flow.port");
-
-    @Rule
-    public DynamicPort subscribeOnOutboundFilterFlowPort = new DynamicPort("subscribe.onoutbound.filter.flow.port");
-
-    @Rule
-    public DynamicPort requestResponseOnOutboundConnectFlowPort = new DynamicPort("requestresponse.onoutbound.connect.flow.port");
-
-    @Rule
-    public DynamicPort publishFlowSubscriber1Port = new DynamicPort("publish.flow.subscriber1.port");
-
-    @Rule
-    public DynamicPort publishFlowSubscriber2Port = new DynamicPort("publish.flow.subscriber2.port");
-
-    @Rule
-    public DynamicPort pullOnOutboundBindFlowPort = new DynamicPort("pull.onoutbound.bind.flow.port");
-
-    @Rule
-    public DynamicPort pushBindFlowPort = new DynamicPort("push.bind.flow.port");
-
-    @Rule
-    public DynamicPort pullOnOutboundConnectFlowPort = new DynamicPort("pull.onoutbound.connect.flow.port");
-
-    @Rule
-    public DynamicPort pushConnectFlowPort = new DynamicPort("push.connect.flow.port");
-
-    @Rule
-    public DynamicPort multipleSourcesSubscriberFlowPort = new DynamicPort("multiplesources.subscriber.flow.port");
-
-    @Rule
-    public DynamicPort multipleSourcesPullFlowPort = new DynamicPort("multiplesources.pull.flow.port");
-
-    @Rule
-    public DynamicPort multiPartMessageOnInboundFlowPort = new DynamicPort("multipartmessage.oninbound.flow.port");
-
-    @Rule
-    public DynamicPort multiPartMessageOnOutboundFlowPort = new DynamicPort("multipartmessage.onoutbound.flow.port");
-
-    @Rule
-    public DynamicPort identityFlowPort = new DynamicPort("identity.flow.port");
-
-    private static ZMQ.Context zmqContext;
+    private ZMQ.Context zmqContext;
 
     @Override
     protected String getConfigResources() {
@@ -124,11 +81,37 @@ public class ZMQTransportTest extends FunctionalTestCase implements EventCallbac
 
     @BeforeClass
     public static void oneTimeSetUp() {
+
+        requestResponseOnInboundBindFlowPort = new DynamicPort("requestresponse.oninbound.bind.flow.port");
+        requestResponseOnInboundConnectFlowPort = new DynamicPort("requestresponse.oninbound.connect.flow.port");
+        subscribeOnInboundNoFilterFlowPort = new DynamicPort("subscribe.oninbound.nofilter.flow.port");
+        subscribeOnInboundFilterFlowPort = new DynamicPort("subscribe.oninbound.filter.flow.port");
+        pullOnInboundBindFlowPort = new DynamicPort("pull.oninbound.bind.flow.port");
+        pullOnInboundConnectFlowPort = new DynamicPort("pull.oninbound.connect.flow.port");
+        requestResponseOnOutboundBindFlowPort = new DynamicPort("requestresponse.onoutbound.bind.flow.port");
+        subscribeOnOutboundNoFilterFlowPort = new DynamicPort("subscribe.onoutbound.nofilter.flow.port");
+        subscribeOnOutboundFilterFlowPort = new DynamicPort("subscribe.onoutbound.filter.flow.port");
+        requestResponseOnOutboundConnectFlowPort = new DynamicPort("requestresponse.onoutbound.connect.flow.port");
+        publishFlowSubscriber1Port = new DynamicPort("publish.flow.subscriber1.port");
+        publishFlowSubscriber2Port = new DynamicPort("publish.flow.subscriber2.port");
+        pullOnOutboundBindFlowPort = new DynamicPort("pull.onoutbound.bind.flow.port");
+        pushBindFlowPort = new DynamicPort("push.bind.flow.port");
+        pullOnOutboundConnectFlowPort = new DynamicPort("pull.onoutbound.connect.flow.port");
+        pushConnectFlowPort = new DynamicPort("push.connect.flow.port");
+        multipleSourcesSubscriberFlowPort = new DynamicPort("multiplesources.subscriber.flow.port");
+        multipleSourcesPullFlowPort = new DynamicPort("multiplesources.pull.flow.port");
+        multiPartMessageOnInboundFlowPort = new DynamicPort("multipartmessage.oninbound.flow.port");
+        multiPartMessageOnOutboundFlowPort = new DynamicPort("multipartmessage.onoutbound.flow.port");
+        identityFlowPort = new DynamicPort("identity.flow.port");
+    }
+
+    @Before
+    public void setUp() {
         zmqContext = ZMQ.context(1);
     }
 
-    @AfterClass
-    public static void oneTimeTearDown() {
+    @After
+    public void tearDown() {
         zmqContext.term();
     }
 
