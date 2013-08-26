@@ -1,15 +1,12 @@
 Runtime requirements:
 
 - Mule 3.2.1
-- ZeroMQ 2.2.0 or 3.2.2
-- jzmq 1.0.0 (ZeroMQ Java language binding)
+- JeroMQ 0.2.0
 
 
 Installation instructions:
 
 1. Install Maven and from your console enter the following command in the project's root folder:
-   "mvn package -Djzmq.path=[jzmq path]". This will produce a JAR called "mule-transport-zmq-[version].jar".
+   "mvn package". This will produce a JAR called "mule-transport-zmq-[version].jar".
 
-2. Add the ZeroMQ transport JAR to Mule's classpath. You must also add jzmq's "zmq.jar" in the classpath.
-
-3. Point Mule's Java VM native library path to jzmq's lib folder (e.g., -Djava.library.path=/opt/jzmq/lib).
+2. Add the ZeroMQ transport JAR to Mule's classpath. You must also add the JeroMQ library to the classpath.
