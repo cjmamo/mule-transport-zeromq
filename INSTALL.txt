@@ -1,6 +1,6 @@
 Runtime requirements:
 
-- Mule >= 3.2.1
+- Mule 3.2.x
 - JeroMQ 0.2.0
 
 
