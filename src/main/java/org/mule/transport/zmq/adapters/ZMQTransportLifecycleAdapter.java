@@ -18,13 +18,14 @@ package org.mule.transport.zmq.adapters;
 import org.mule.api.MuleException;
 import org.mule.api.lifecycle.*;
 import org.mule.config.MuleManifest;
+import org.mule.devkit.dynamic.api.helper.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class ZMQTransportLifecycleAdapter
         extends ZMQTransportCapabilitiesAdapter
-        implements Disposable, Initialisable, Startable, Stoppable {
+        implements Disposable, Initialisable, Startable, Stoppable, Connection {
 
 
     public void start() throws MuleException {
@@ -33,6 +34,12 @@ public class ZMQTransportLifecycleAdapter
 
     public void stop()
             throws MuleException {
+    }
+
+    @Override
+    public String getConnectionIdentifier() {
+        // ToDo JD implement
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public void initialise() {
