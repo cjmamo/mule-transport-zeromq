@@ -38,8 +38,7 @@ public class ZMQTransportLifecycleAdapter
 
     @Override
     public String getConnectionIdentifier() {
-        // ToDo JD implement
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return super.connectionId();
     }
 
     public void initialise() {
