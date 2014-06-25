@@ -64,6 +64,11 @@ public class InboundEndpointMessageSource implements Runnable, SourceCallback, F
 
     private Thread thread;
 
+    @Override
+    public MuleEvent processEvent(MuleEvent muleEvent) throws MuleException {
+        return muleEvent;
+    }
+
     public void initialise()
             throws InitialisationException {
         if (moduleObject == null) {

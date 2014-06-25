@@ -17,23 +17,27 @@ package org.mule.transport.zmq.adapters;
 
 import org.apache.commons.pool.KeyedPoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
-import org.mule.api.Capabilities;
-import org.mule.api.Capability;
-import org.mule.api.ConnectionManager;
+
 import org.mule.api.MuleContext;
+import org.mule.api.config.MuleProperties;
 import org.mule.api.config.ThreadingProfile;
 import org.mule.api.context.MuleContextAware;
+import org.mule.api.devkit.capability.Capabilities;
+import org.mule.api.devkit.capability.ModuleCapability;
 import org.mule.api.lifecycle.Disposable;
 import org.mule.api.lifecycle.Initialisable;
 import org.mule.api.lifecycle.Stoppable;
+import org.mule.api.retry.RetryPolicyTemplate;
 import org.mule.config.PoolingProfile;
+import org.mule.devkit.dynamic.api.helper.ConnectionManager;
 import org.mule.transport.zmq.ZMQTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class ZeroMQTransportConnectionManager
-        implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey, ZMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
+        implements Capabilities, ConnectionManager<ZeroMQTransportConnectionManager.ConnectionKey,
+        ZMQTransportLifecycleAdapter>, MuleContextAware, Initialisable {
 
 
     private ZMQTransport.ExchangePattern exchangePattern;
@@ -48,6 +52,25 @@ public class ZeroMQTransportConnectionManager
     private ThreadingProfile receiverThreadingProfile;
     private String name;
     private Integer ioThreads;
+
+    @Override
+    public ConnectionKey getDefaultConnectionKey() {
+
+        /*
+        ToDo not sure if there's a better way to determine whether its inbound or not then this for the connection key
+         */
+        if (receiverThreadingProfile != null) {
+            return new ConnectionKey(exchangePattern, socketOperation, address, filter, true, multipart, name);
+        } else {
+            return new ConnectionKey(exchangePattern, socketOperation, address, filter, false, multipart, name);
+
+        }
+    }
+
+    @Override
+    public RetryPolicyTemplate getRetryPolicyTemplate() {
+        return muleContext.getRegistry().lookupObject(MuleProperties.OBJECT_DEFAULT_RETRY_POLICY_TEMPLATE);
+    }
 
     public int getIoThreads() {
         return ioThreads;
@@ -151,11 +174,12 @@ public class ZeroMQTransportConnectionManager
         connectionPool.invalidateObject(key, connection);
     }
 
-    public boolean isCapableOf(Capability capability) {
-        if (capability == Capability.LIFECYCLE_CAPABLE) {
+    @Override
+    public boolean isCapableOf(ModuleCapability capability) {
+        if (capability == ModuleCapability.LIFECYCLE_CAPABLE) {
             return true;
         }
-        if (capability == Capability.CONNECTION_MANAGEMENT_CAPABLE) {
+        if (capability == ModuleCapability.CONNECTION_MANAGEMENT_CAPABLE) {
             return true;
         }
         return false;

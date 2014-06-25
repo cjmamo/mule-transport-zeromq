@@ -15,22 +15,25 @@
  */
 package org.mule.transport.zmq.adapters;
 
-import org.mule.api.Capabilities;
-import org.mule.api.Capability;
+
+import org.mule.api.devkit.capability.Capabilities;
+import org.mule.api.devkit.capability.ModuleCapability;
 import org.mule.transport.zmq.ZMQTransport;
 
 
 public class ZMQTransportCapabilitiesAdapter extends ZMQTransport implements Capabilities {
 
 
-    public boolean isCapableOf(Capability capability) {
-        if (capability == Capability.LIFECYCLE_CAPABLE) {
+    @Override
+    public boolean isCapableOf(ModuleCapability capability) {
+        if (capability == ModuleCapability.LIFECYCLE_CAPABLE) {
             return true;
         }
-        if (capability == Capability.CONNECTION_MANAGEMENT_CAPABLE) {
+        if (capability == ModuleCapability.CONNECTION_MANAGEMENT_CAPABLE) {
             return true;
         }
         return false;
     }
+
 
 }
